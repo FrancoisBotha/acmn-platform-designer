@@ -15,6 +15,7 @@ yarn.lock
 
 # Build output
 dist/
+dist-electron/
 build/
 release/
 frontend/release/
