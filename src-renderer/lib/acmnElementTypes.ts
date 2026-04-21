@@ -22,9 +22,12 @@ import {
   ArrowLeftRight,
   UserCheck,
   Cog,
+  Briefcase,
+  Diamond,
+  SquareDashed,
 } from 'lucide-react'
 
-export type AcmnCategory = 'plan-items' | 'agent-plan-items' | 'structure' | 'connectors' | 'domain'
+export type AcmnCategory = 'plan-items' | 'agent-plan-items' | 'cmmn' | 'structure' | 'connectors' | 'domain'
 
 export interface AcmnElementType {
   id: string
@@ -55,6 +58,14 @@ export const acmnElementTypes: AcmnElementType[] = [
   { id: 'human-task', label: 'Human Task', category: 'agent-plan-items', icon: UserCheck, defaultWidth: 200, defaultHeight: 80, defaultColor: '#f97316' },
   { id: 'process-task', label: 'Process Task', category: 'agent-plan-items', icon: Cog, defaultWidth: 200, defaultHeight: 80, defaultColor: '#3b82f6' },
 
+  // CMMN Structural Elements (6)
+  { id: 'case-plan-model', label: 'Case Plan Model', category: 'cmmn', icon: Briefcase, defaultWidth: 400, defaultHeight: 300, defaultColor: '#334155' },
+  { id: 'stage', label: 'Stage', category: 'cmmn', icon: Layers, defaultWidth: 300, defaultHeight: 200, defaultColor: '#f59e0b' },
+  { id: 'cmmn-milestone', label: 'Milestone (CMMN)', category: 'cmmn', icon: Milestone, defaultWidth: 100, defaultHeight: 100, defaultColor: '#f59e0b' },
+  { id: 'sentry-entry', label: 'Sentry (Entry)', category: 'cmmn', icon: Diamond, defaultWidth: 32, defaultHeight: 32, defaultColor: '#f59e0b' },
+  { id: 'sentry-exit', label: 'Sentry (Exit)', category: 'cmmn', icon: Diamond, defaultWidth: 32, defaultHeight: 32, defaultColor: '#f59e0b' },
+  { id: 'discretionary-item', label: 'Discretionary Item', category: 'cmmn', icon: SquareDashed, defaultWidth: 200, defaultHeight: 80, defaultColor: '#f59e0b' },
+
   // Structure (6)
   { id: 'component', label: 'Component', category: 'structure', icon: Component, defaultWidth: 240, defaultHeight: 120, defaultColor: '#10b981' },
   { id: 'layer', label: 'Layer', category: 'structure', icon: Layers, defaultWidth: 300, defaultHeight: 200, defaultColor: '#06b6d4' },
@@ -77,12 +88,13 @@ export const acmnElementTypeMap = new Map(
 export const categoryLabels: Record<AcmnCategory, string> = {
   'plan-items': 'Plan Items',
   'agent-plan-items': 'Agent Plan Items',
+  'cmmn': 'CMMN Elements',
   'structure': 'Structure',
   'connectors': 'Connectors',
   'domain': 'Domain',
 }
 
-export const categories: AcmnCategory[] = ['plan-items', 'agent-plan-items', 'structure', 'connectors', 'domain']
+export const categories: AcmnCategory[] = ['plan-items', 'agent-plan-items', 'cmmn', 'structure', 'connectors', 'domain']
 
 export const nodeTypeMap: Record<string, string> = {
   agent: 'agent',
@@ -92,4 +104,10 @@ export const nodeTypeMap: Record<string, string> = {
   handoff: 'handoff',
   'human-task': 'human-task',
   'process-task': 'process-task',
+  'case-plan-model': 'case-plan-model',
+  stage: 'stage',
+  'cmmn-milestone': 'milestone',
+  'sentry-entry': 'sentry-entry',
+  'sentry-exit': 'sentry-exit',
+  'discretionary-item': 'discretionary-item',
 }

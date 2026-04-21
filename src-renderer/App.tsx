@@ -21,6 +21,12 @@ import EvaluatorNode from '@/components/nodes/EvaluatorNode'
 import HandoffNode from '@/components/nodes/HandoffNode'
 import HumanTaskNode from '@/components/nodes/HumanTaskNode'
 import ProcessTaskNode from '@/components/nodes/ProcessTaskNode'
+import CasePlanModelNode from '@/components/nodes/CasePlanModelNode'
+import StageNode from '@/components/nodes/StageNode'
+import MilestoneNode from '@/components/nodes/MilestoneNode'
+import SentryEntryNode from '@/components/nodes/SentryEntryNode'
+import SentryExitNode from '@/components/nodes/SentryExitNode'
+import DiscretionaryItemNode from '@/components/nodes/DiscretionaryItemNode'
 import { acmnElementTypeMap, nodeTypeMap } from '@/lib/acmnElementTypes'
 
 const nodeTypes = {
@@ -32,6 +38,12 @@ const nodeTypes = {
   handoff: HandoffNode,
   'human-task': HumanTaskNode,
   'process-task': ProcessTaskNode,
+  'case-plan-model': CasePlanModelNode,
+  stage: StageNode,
+  milestone: MilestoneNode,
+  'sentry-entry': SentryEntryNode,
+  'sentry-exit': SentryExitNode,
+  'discretionary-item': DiscretionaryItemNode,
 }
 
 const noop = () => {}
@@ -45,6 +57,8 @@ export default function App() {
     e.preventDefault()
     e.dataTransfer.dropEffect = 'move'
   }, [])
+
+  const containerNodeTypes = new Set(['stage', 'case-plan-model'])
 
   const onDrop = useCallback(
     (e: React.DragEvent) => {
@@ -72,7 +86,32 @@ export default function App() {
         },
       }
 
-      setNodes((nds) => [...nds, newNode])
+      setNodes((nds) => {
+        const parentCandidate = [...nds]
+          .reverse()
+          .find((n) => {
+            if (!containerNodeTypes.has(n.type ?? '')) return false
+            const w = n.measured?.width ?? (acmnElementTypeMap.get(n.data.elementType as string)?.defaultWidth ?? 0)
+            const h = n.measured?.height ?? (acmnElementTypeMap.get(n.data.elementType as string)?.defaultHeight ?? 0)
+            return (
+              position.x >= n.position.x &&
+              position.x <= n.position.x + w &&
+              position.y >= n.position.y &&
+              position.y <= n.position.y + h
+            )
+          })
+
+        if (parentCandidate && !containerNodeTypes.has(resolvedType)) {
+          newNode.parentId = parentCandidate.id
+          newNode.extent = 'parent'
+          newNode.position = {
+            x: position.x - parentCandidate.position.x,
+            y: position.y - parentCandidate.position.y,
+          }
+        }
+
+        return [...nds, newNode]
+      })
     },
     [setNodes],
   )
