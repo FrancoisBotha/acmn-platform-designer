@@ -14,9 +14,25 @@ import '@xyflow/react/dist/style.css'
 import { nanoid } from 'nanoid'
 import Palette from '@/components/Palette'
 import DefaultNode from '@/components/nodes/DefaultNode'
-import { acmnElementTypeMap } from '@/lib/acmnElementTypes'
+import AgentNode from '@/components/nodes/AgentNode'
+import ToolNode from '@/components/nodes/ToolNode'
+import GuardrailNode from '@/components/nodes/GuardrailNode'
+import EvaluatorNode from '@/components/nodes/EvaluatorNode'
+import HandoffNode from '@/components/nodes/HandoffNode'
+import HumanTaskNode from '@/components/nodes/HumanTaskNode'
+import ProcessTaskNode from '@/components/nodes/ProcessTaskNode'
+import { acmnElementTypeMap, nodeTypeMap } from '@/lib/acmnElementTypes'
 
-const nodeTypes = { default: DefaultNode }
+const nodeTypes = {
+  default: DefaultNode,
+  agent: AgentNode,
+  tool: ToolNode,
+  guardrail: GuardrailNode,
+  evaluator: EvaluatorNode,
+  handoff: HandoffNode,
+  'human-task': HumanTaskNode,
+  'process-task': ProcessTaskNode,
+}
 
 const noop = () => {}
 
@@ -44,9 +60,11 @@ export default function App() {
         y: e.clientY,
       })
 
+      const resolvedType = nodeTypeMap[elementType.id] ?? 'default'
+
       const newNode: Node = {
         id: nanoid(),
-        type: 'default',
+        type: resolvedType,
         position,
         data: {
           label: elementType.label,

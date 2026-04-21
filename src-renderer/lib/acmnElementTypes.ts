@@ -15,9 +15,16 @@ import {
   Box,
   Cable,
   Globe,
+  Bot,
+  Wrench,
+  ShieldAlert,
+  ScanSearch,
+  ArrowLeftRight,
+  UserCheck,
+  Cog,
 } from 'lucide-react'
 
-export type AcmnCategory = 'plan-items' | 'structure' | 'connectors' | 'domain'
+export type AcmnCategory = 'plan-items' | 'agent-plan-items' | 'structure' | 'connectors' | 'domain'
 
 export interface AcmnElementType {
   id: string
@@ -38,6 +45,15 @@ export const acmnElementTypes: AcmnElementType[] = [
   { id: 'work-package', label: 'Work Package', category: 'plan-items', icon: ListChecks, defaultWidth: 200, defaultHeight: 80, defaultColor: '#0ea5e9' },
   { id: 'decision', label: 'Decision', category: 'plan-items', icon: GitBranch, defaultWidth: 200, defaultHeight: 80, defaultColor: '#14b8a6' },
   { id: 'risk', label: 'Risk', category: 'plan-items', icon: AlertTriangle, defaultWidth: 200, defaultHeight: 80, defaultColor: '#f59e0b' },
+
+  // Agent Plan Items (7)
+  { id: 'agent', label: 'Agent', category: 'agent-plan-items', icon: Bot, defaultWidth: 200, defaultHeight: 80, defaultColor: '#a855f7' },
+  { id: 'tool', label: 'Tool', category: 'agent-plan-items', icon: Wrench, defaultWidth: 200, defaultHeight: 80, defaultColor: '#22c55e' },
+  { id: 'guardrail', label: 'Guardrail', category: 'agent-plan-items', icon: ShieldAlert, defaultWidth: 200, defaultHeight: 80, defaultColor: '#ef4444' },
+  { id: 'evaluator', label: 'Evaluator', category: 'agent-plan-items', icon: ScanSearch, defaultWidth: 200, defaultHeight: 80, defaultColor: '#06b6d4' },
+  { id: 'handoff', label: 'Handoff', category: 'agent-plan-items', icon: ArrowLeftRight, defaultWidth: 200, defaultHeight: 80, defaultColor: '#ec4899' },
+  { id: 'human-task', label: 'Human Task', category: 'agent-plan-items', icon: UserCheck, defaultWidth: 200, defaultHeight: 80, defaultColor: '#f97316' },
+  { id: 'process-task', label: 'Process Task', category: 'agent-plan-items', icon: Cog, defaultWidth: 200, defaultHeight: 80, defaultColor: '#3b82f6' },
 
   // Structure (6)
   { id: 'component', label: 'Component', category: 'structure', icon: Component, defaultWidth: 240, defaultHeight: 120, defaultColor: '#10b981' },
@@ -60,9 +76,20 @@ export const acmnElementTypeMap = new Map(
 
 export const categoryLabels: Record<AcmnCategory, string> = {
   'plan-items': 'Plan Items',
+  'agent-plan-items': 'Agent Plan Items',
   'structure': 'Structure',
   'connectors': 'Connectors',
   'domain': 'Domain',
 }
 
-export const categories: AcmnCategory[] = ['plan-items', 'structure', 'connectors', 'domain']
+export const categories: AcmnCategory[] = ['plan-items', 'agent-plan-items', 'structure', 'connectors', 'domain']
+
+export const nodeTypeMap: Record<string, string> = {
+  agent: 'agent',
+  tool: 'tool',
+  guardrail: 'guardrail',
+  evaluator: 'evaluator',
+  handoff: 'handoff',
+  'human-task': 'human-task',
+  'process-task': 'process-task',
+}
