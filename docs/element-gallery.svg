@@ -1,0 +1,163 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1100" width="1600" height="1100">
+  <style>
+    text { font-family: 'Segoe UI', system-ui, sans-serif; }
+    .cat-label { font-size: 16px; font-weight: 700; fill: #1e293b; }
+    .node-label { font-size: 11px; fill: #fff; font-weight: 600; }
+    .node-label-dark { font-size: 11px; fill: #1e293b; font-weight: 600; }
+    .wire-label { font-size: 10px; fill: #475569; }
+    .title { font-size: 22px; font-weight: 700; fill: #0f172a; }
+    .subtitle { font-size: 13px; fill: #64748b; }
+  </style>
+
+  <rect width="1600" height="1100" fill="#f8fafc" rx="8"/>
+
+  <text x="40" y="40" class="title">ACMN Element Gallery — Spike 1 Visual Inventory</text>
+  <text x="40" y="60" class="subtitle">All 34 element types and 5 wire styles rendered in the ACMN Platform Designer</text>
+
+  <!-- Plan Items (7) -->
+  <text x="40" y="105" class="cat-label">Plan Items</text>
+  <rect x="40" y="115" width="160" height="50" rx="8" fill="#3b82f6"/>
+  <text x="120" y="145" class="node-label" text-anchor="middle">Goal</text>
+  <rect x="215" y="115" width="160" height="50" rx="8" fill="#6366f1"/>
+  <text x="295" y="145" class="node-label" text-anchor="middle">Objective</text>
+  <rect x="390" y="115" width="160" height="50" rx="8" fill="#8b5cf6"/>
+  <text x="470" y="145" class="node-label" text-anchor="middle">Milestone</text>
+  <rect x="565" y="115" width="160" height="50" rx="8" fill="#a855f7"/>
+  <text x="645" y="145" class="node-label" text-anchor="middle">Deliverable</text>
+  <rect x="740" y="115" width="160" height="50" rx="8" fill="#0ea5e9"/>
+  <text x="820" y="145" class="node-label" text-anchor="middle">Work Package</text>
+  <rect x="915" y="115" width="160" height="50" rx="8" fill="#14b8a6"/>
+  <text x="995" y="145" class="node-label" text-anchor="middle">Decision</text>
+  <rect x="1090" y="115" width="160" height="50" rx="8" fill="#f59e0b"/>
+  <text x="1170" y="145" class="node-label-dark" text-anchor="middle">Risk</text>
+
+  <!-- Agent Plan Items (7) -->
+  <text x="40" y="210" class="cat-label">Agent Plan Items</text>
+  <rect x="40" y="220" width="160" height="50" rx="8" fill="#a855f7"/>
+  <text x="120" y="250" class="node-label" text-anchor="middle">Agent</text>
+  <rect x="215" y="220" width="160" height="50" rx="8" fill="#22c55e"/>
+  <text x="295" y="250" class="node-label" text-anchor="middle">Tool</text>
+  <rect x="390" y="220" width="160" height="50" rx="8" fill="#ef4444"/>
+  <text x="470" y="250" class="node-label" text-anchor="middle">Guardrail</text>
+  <rect x="565" y="220" width="160" height="50" rx="8" fill="#06b6d4"/>
+  <text x="645" y="250" class="node-label" text-anchor="middle">Evaluator</text>
+  <rect x="740" y="220" width="160" height="50" rx="8" fill="#ec4899"/>
+  <text x="820" y="250" class="node-label" text-anchor="middle">Handoff</text>
+  <rect x="915" y="220" width="160" height="50" rx="8" fill="#f97316"/>
+  <text x="995" y="250" class="node-label" text-anchor="middle">Human Task</text>
+  <rect x="1090" y="220" width="160" height="50" rx="8" fill="#3b82f6"/>
+  <text x="1170" y="250" class="node-label" text-anchor="middle">Process Task</text>
+
+  <!-- CMMN Structural Elements (6) -->
+  <text x="40" y="315" class="cat-label">CMMN Elements</text>
+
+  <!-- Case Plan Model container -->
+  <rect x="40" y="325" width="280" height="180" rx="8" fill="none" stroke="#334155" stroke-width="2.5"/>
+  <rect x="40" y="325" width="280" height="30" rx="8" fill="#334155"/>
+  <rect x="40" y="347" width="280" height="8" fill="#334155"/>
+  <text x="180" y="346" class="node-label" text-anchor="middle">Case Plan Model</text>
+  <!-- Domain context badge above CPM -->
+  <rect x="130" y="310" width="100" height="22" rx="11" fill="#e11d48"/>
+  <text x="180" y="325" text-anchor="middle" font-size="10" fill="#fff" font-family="Segoe UI, system-ui" font-weight="600">Domain Ctx</text>
+
+  <!-- Stage container inside CPM -->
+  <rect x="55" y="368" width="250" height="120" rx="6" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="6 3"/>
+  <rect x="55" y="368" width="250" height="24" rx="6" fill="#f59e0b"/>
+  <rect x="55" y="386" width="250" height="6" fill="#f59e0b"/>
+  <text x="180" y="385" class="node-label-dark" text-anchor="middle" font-size="10">Stage</text>
+
+  <!-- CMMN Milestone (diamond-ish shape) -->
+  <rect x="70" y="405" width="80" height="40" rx="6" fill="#f59e0b"/>
+  <text x="110" y="430" class="node-label-dark" text-anchor="middle" font-size="9">Milestone</text>
+
+  <!-- Discretionary Item -->
+  <rect x="165" y="405" width="120" height="40" rx="6" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4 3"/>
+  <text x="225" y="430" class="node-label-dark" text-anchor="middle" font-size="9">Discretionary</text>
+
+  <!-- Sentry Entry -->
+  <rect x="70" y="455" width="55" height="24" rx="4" fill="#f59e0b"/>
+  <text x="97" y="471" text-anchor="middle" font-size="8" fill="#1e293b" font-family="Segoe UI, system-ui" font-weight="600">Entry ◆</text>
+
+  <!-- Sentry Exit -->
+  <rect x="140" y="455" width="55" height="24" rx="4" fill="#f59e0b"/>
+  <text x="167" y="471" text-anchor="middle" font-size="8" fill="#1e293b" font-family="Segoe UI, system-ui" font-weight="600">Exit ◆</text>
+
+  <!-- Structure (6) -->
+  <text x="360" y="315" class="cat-label">Structure</text>
+  <rect x="360" y="325" width="160" height="60" rx="8" fill="#10b981"/>
+  <text x="440" y="360" class="node-label" text-anchor="middle">Component</text>
+  <rect x="535" y="325" width="190" height="100" rx="8" fill="none" stroke="#06b6d4" stroke-width="2"/>
+  <rect x="535" y="325" width="190" height="26" rx="8" fill="#06b6d4"/>
+  <rect x="535" y="343" width="190" height="8" fill="#06b6d4"/>
+  <text x="630" y="344" class="node-label" text-anchor="middle" font-size="10">Layer</text>
+  <rect x="360" y="400" width="160" height="50" rx="8" fill="#22c55e"/>
+  <text x="440" y="430" class="node-label" text-anchor="middle">Service</text>
+  <rect x="360" y="465" width="160" height="50" rx="8" fill="#64748b"/>
+  <text x="440" y="495" class="node-label" text-anchor="middle">Interface</text>
+  <rect x="535" y="440" width="160" height="60" rx="8" fill="#0d9488"/>
+  <text x="615" y="475" class="node-label" text-anchor="middle">Module</text>
+  <rect x="740" y="325" width="200" height="140" rx="8" fill="none" stroke="#78716c" stroke-width="2" stroke-dasharray="8 4"/>
+  <text x="840" y="400" class="node-label-dark" text-anchor="middle" font-size="13">Boundary</text>
+
+  <!-- Connectors (7) -->
+  <text x="980" y="315" class="cat-label">Connectors</text>
+  <rect x="980" y="325" width="140" height="44" rx="8" fill="#94a3b8"/>
+  <text x="1050" y="352" class="node-label" text-anchor="middle" font-size="10">Email</text>
+  <rect x="1135" y="325" width="140" height="44" rx="8" fill="#94a3b8"/>
+  <text x="1205" y="352" class="node-label" text-anchor="middle" font-size="10">Webhook</text>
+  <rect x="1290" y="325" width="140" height="44" rx="8" fill="#94a3b8"/>
+  <text x="1360" y="352" class="node-label" text-anchor="middle" font-size="10">File Watch</text>
+  <rect x="980" y="382" width="140" height="44" rx="8" fill="#94a3b8"/>
+  <text x="1050" y="409" class="node-label" text-anchor="middle" font-size="10">Schedule</text>
+  <rect x="1135" y="382" width="140" height="44" rx="8" fill="#94a3b8"/>
+  <text x="1205" y="409" class="node-label" text-anchor="middle" font-size="10">Database</text>
+  <rect x="1290" y="382" width="140" height="44" rx="8" fill="#94a3b8"/>
+  <text x="1360" y="409" class="node-label" text-anchor="middle" font-size="10">Event</text>
+  <rect x="980" y="439" width="140" height="44" rx="8" fill="#94a3b8"/>
+  <text x="1050" y="466" class="node-label" text-anchor="middle" font-size="10">API</text>
+
+  <!-- Domain Context -->
+  <text x="1135" y="455" class="cat-label" font-size="13">Domain</text>
+  <rect x="1135" y="462" width="200" height="50" rx="8" fill="#e11d48"/>
+  <text x="1235" y="492" class="node-label" text-anchor="middle">Domain Context</text>
+
+  <!-- Wire Styles (5) -->
+  <text x="40" y="570" class="cat-label">Wire Styles (5 types)</text>
+
+  <!-- Data wire -->
+  <line x1="40" y1="600" x2="260" y2="600" stroke="#3b82f6" stroke-width="2"/>
+  <polygon points="260,595 270,600 260,605" fill="#3b82f6"/>
+  <text x="155" y="590" class="wire-label" text-anchor="middle">Data (solid blue)</text>
+
+  <!-- Confidence-Gated wire -->
+  <line x1="310" y1="600" x2="530" y2="600" stroke="#f59e0b" stroke-width="2" stroke-dasharray="8 4"/>
+  <polygon points="530,595 540,600 530,605" fill="#f59e0b"/>
+  <text x="425" y="590" class="wire-label" text-anchor="middle">Confidence-Gated (dashed amber)</text>
+
+  <!-- Escalation wire -->
+  <line x1="580" y1="600" x2="800" y2="600" stroke="#ef4444" stroke-width="3"/>
+  <polygon points="800,594 812,600 800,606" fill="#ef4444"/>
+  <text x="690" y="588" class="wire-label" text-anchor="middle">Escalation (solid red, animated)</text>
+  <!-- animated dots for escalation -->
+  <circle cx="620" cy="600" r="3" fill="#ef4444" opacity="0.6"/>
+  <circle cx="660" cy="600" r="3" fill="#ef4444" opacity="0.4"/>
+  <circle cx="700" cy="600" r="3" fill="#ef4444" opacity="0.6"/>
+  <circle cx="740" cy="600" r="3" fill="#ef4444" opacity="0.4"/>
+
+  <!-- Event wire -->
+  <line x1="850" y1="600" x2="1070" y2="600" stroke="#22c55e" stroke-width="2" stroke-dasharray="3 3"/>
+  <polygon points="1070,595 1080,600 1070,605" fill="#22c55e"/>
+  <text x="965" y="590" class="wire-label" text-anchor="middle">Event (dotted green)</text>
+
+  <!-- Case File wire -->
+  <line x1="1120" y1="600" x2="1340" y2="600" stroke="#64748b" stroke-width="2" stroke-dasharray="12 4 3 4"/>
+  <polygon points="1340,595 1350,600 1340,605" fill="#64748b"/>
+  <text x="1230" y="590" class="wire-label" text-anchor="middle">Case File (dash-dot slate)</text>
+
+  <!-- Summary stats -->
+  <rect x="40" y="640" width="1520" height="50" rx="8" fill="#e2e8f0"/>
+  <text x="60" y="670" font-size="13" fill="#334155" font-family="Segoe UI, system-ui" font-weight="600">
+    34 element types  •  6 categories  •  5 wire styles  •  7 plan items  •  7 agent plan items  •  6 CMMN  •  6 structure  •  7 connectors  •  1 domain
+  </text>
+
+</svg>
