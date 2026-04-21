@@ -1,0 +1,29 @@
+actor "User" @150,207
+actor "Administrator" @116,957
+actor "Supervisor" @122,561
+
+usecase "View Assigned Tasks" @616,183
+usecase " Log on" @452,62
+usecase "Log Off" @531,307
+usecase "Create User" @397,913
+usecase "Create Group" @420,1071
+usecase "Link User to Group" @966,955
+usecase "View Intake Queue" @410,461
+usecase "View Open Cases" @451,564
+usecase "View Execution History" @443,673
+usecase "View Case Detail" @803,581
+usecase "View Case Execution Log" @1237,521
+usecase "Human Task Execution" @1112,148
+
+"User" --> "View Assigned Tasks"
+"User" --> " Log on"
+"User" --> "Log Off"
+"Administrator" --> "Create User"
+"Create User" ..includes..> "Link User to Group"
+"Administrator" --> "Create Group"
+"Supervisor" --> "View Intake Queue"
+"Supervisor" --> "View Open Cases"
+"Supervisor" --> "View Execution History"
+"View Open Cases" ..includes..> "View Case Detail"
+"View Case Detail" ..includes..> "View Case Execution Log"
+"View Assigned Tasks" ..includes..> "Human Task Execution"
