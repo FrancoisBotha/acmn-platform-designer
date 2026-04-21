@@ -164,6 +164,7 @@ export default function App() {
           onDrop={onDrop}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
+          deleteKeyCode={['Delete', 'Backspace']}
           fitView
         >
           <Background variant={BackgroundVariant.Dots} />
