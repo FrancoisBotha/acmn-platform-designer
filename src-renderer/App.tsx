@@ -8,6 +8,7 @@ import {
   useNodesState,
   useEdgesState,
   type Node,
+  type Edge,
   type ReactFlowInstance,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
@@ -28,6 +29,7 @@ import SentryEntryNode from '@/components/nodes/SentryEntryNode'
 import SentryExitNode from '@/components/nodes/SentryExitNode'
 import DiscretionaryItemNode from '@/components/nodes/DiscretionaryItemNode'
 import ConnectorNode from '@/components/nodes/ConnectorNode'
+import AcmnWireEdge from '@/components/edges/AcmnWireEdge'
 import { acmnElementTypeMap, nodeTypeMap } from '@/lib/acmnElementTypes'
 
 const nodeTypes = {
@@ -48,11 +50,34 @@ const nodeTypes = {
   connector: ConnectorNode,
 }
 
-const noop = () => {}
+const edgeTypes = {
+  'acmn-wire': AcmnWireEdge,
+}
+
+const sampleNodes: Node[] = [
+  { id: 'sample-agent-1', type: 'agent', position: { x: 50, y: 0 }, data: { label: 'Agent', elementType: 'agent' } },
+  { id: 'sample-tool-1', type: 'tool', position: { x: 50, y: 150 }, data: { label: 'Tool', elementType: 'tool' } },
+  { id: 'sample-guardrail-1', type: 'guardrail', position: { x: 350, y: 0 }, data: { label: 'Guardrail', elementType: 'guardrail' } },
+  { id: 'sample-evaluator-1', type: 'evaluator', position: { x: 350, y: 150 }, data: { label: 'Evaluator', elementType: 'evaluator' } },
+  { id: 'sample-handoff-1', type: 'handoff', position: { x: 650, y: 0 }, data: { label: 'Handoff', elementType: 'handoff' } },
+  { id: 'sample-human-task-1', type: 'human-task', position: { x: 650, y: 150 }, data: { label: 'Human Task', elementType: 'human-task' } },
+  { id: 'sample-process-task-1', type: 'process-task', position: { x: 950, y: 0 }, data: { label: 'Process Task', elementType: 'process-task' } },
+  { id: 'sample-agent-2', type: 'agent', position: { x: 950, y: 150 }, data: { label: 'Agent B', elementType: 'agent' } },
+  { id: 'sample-connector-1', type: 'connector', position: { x: 1250, y: 0 }, data: { label: 'Event Connector', elementType: 'connector-event', connectorSubType: 'event' } },
+  { id: 'sample-tool-2', type: 'tool', position: { x: 1250, y: 150 }, data: { label: 'Tool B', elementType: 'tool' } },
+]
+
+const sampleEdges: Edge[] = [
+  { id: 'wire-data', type: 'acmn-wire', source: 'sample-agent-1', target: 'sample-tool-1', data: { wireType: 'data' as const } },
+  { id: 'wire-confidence-gated', type: 'acmn-wire', source: 'sample-guardrail-1', target: 'sample-evaluator-1', data: { wireType: 'confidence-gated' as const } },
+  { id: 'wire-escalation', type: 'acmn-wire', source: 'sample-handoff-1', target: 'sample-human-task-1', data: { wireType: 'escalation' as const } },
+  { id: 'wire-event', type: 'acmn-wire', source: 'sample-process-task-1', target: 'sample-agent-2', data: { wireType: 'event' as const } },
+  { id: 'wire-case-file', type: 'acmn-wire', source: 'sample-connector-1', target: 'sample-tool-2', data: { wireType: 'case-file' as const } },
+]
 
 export default function App() {
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
-  const [edges, , onEdgesChange] = useEdgesState([])
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>(sampleNodes)
+  const [edges, , onEdgesChange] = useEdgesState(sampleEdges)
   const reactFlowInstance = useRef<ReactFlowInstance | null>(null)
 
   const onDragOver = useCallback((e: React.DragEvent) => {
@@ -134,11 +159,11 @@ export default function App() {
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
-          onConnect={noop}
           onInit={(instance) => { reactFlowInstance.current = instance }}
           onDragOver={onDragOver}
           onDrop={onDrop}
           nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
           fitView
         >
           <Background variant={BackgroundVariant.Dots} />
