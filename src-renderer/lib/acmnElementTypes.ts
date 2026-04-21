@@ -25,6 +25,12 @@ import {
   Briefcase,
   Diamond,
   SquareDashed,
+  Mail,
+  Webhook,
+  FileSearch,
+  Clock,
+  Database,
+  Zap,
 } from 'lucide-react'
 
 export type AcmnCategory = 'plan-items' | 'agent-plan-items' | 'cmmn' | 'structure' | 'connectors' | 'domain'
@@ -37,6 +43,7 @@ export interface AcmnElementType {
   defaultWidth: number
   defaultHeight: number
   defaultColor: string
+  connectorSubType?: string
 }
 
 export const acmnElementTypes: AcmnElementType[] = [
@@ -74,8 +81,14 @@ export const acmnElementTypes: AcmnElementType[] = [
   { id: 'module', label: 'Module', category: 'structure', icon: LayoutGrid, defaultWidth: 240, defaultHeight: 120, defaultColor: '#0d9488' },
   { id: 'boundary', label: 'Boundary', category: 'structure', icon: Box, defaultWidth: 320, defaultHeight: 240, defaultColor: '#78716c' },
 
-  // Connectors (1)
-  { id: 'connector', label: 'Connector', category: 'connectors', icon: Cable, defaultWidth: 200, defaultHeight: 80, defaultColor: '#94a3b8' },
+  // Connectors (7 sub-types)
+  { id: 'connector-email', label: 'Email Connector', category: 'connectors', icon: Mail, defaultWidth: 200, defaultHeight: 80, defaultColor: '#94a3b8', connectorSubType: 'email' },
+  { id: 'connector-webhook', label: 'Webhook Connector', category: 'connectors', icon: Webhook, defaultWidth: 200, defaultHeight: 80, defaultColor: '#94a3b8', connectorSubType: 'webhook' },
+  { id: 'connector-file-watch', label: 'File Watch Connector', category: 'connectors', icon: FileSearch, defaultWidth: 200, defaultHeight: 80, defaultColor: '#94a3b8', connectorSubType: 'file-watch' },
+  { id: 'connector-schedule', label: 'Schedule Connector', category: 'connectors', icon: Clock, defaultWidth: 200, defaultHeight: 80, defaultColor: '#94a3b8', connectorSubType: 'schedule' },
+  { id: 'connector-database', label: 'Database Connector', category: 'connectors', icon: Database, defaultWidth: 200, defaultHeight: 80, defaultColor: '#94a3b8', connectorSubType: 'database' },
+  { id: 'connector-event', label: 'Event Connector', category: 'connectors', icon: Zap, defaultWidth: 200, defaultHeight: 80, defaultColor: '#94a3b8', connectorSubType: 'event' },
+  { id: 'connector-api', label: 'API Connector', category: 'connectors', icon: Globe, defaultWidth: 200, defaultHeight: 80, defaultColor: '#94a3b8', connectorSubType: 'api' },
 
   // Domain (1)
   { id: 'domain-context', label: 'Domain Context', category: 'domain', icon: Globe, defaultWidth: 320, defaultHeight: 240, defaultColor: '#e11d48' },
@@ -110,4 +123,11 @@ export const nodeTypeMap: Record<string, string> = {
   'sentry-entry': 'sentry-entry',
   'sentry-exit': 'sentry-exit',
   'discretionary-item': 'discretionary-item',
+  'connector-email': 'connector',
+  'connector-webhook': 'connector',
+  'connector-file-watch': 'connector',
+  'connector-schedule': 'connector',
+  'connector-database': 'connector',
+  'connector-event': 'connector',
+  'connector-api': 'connector',
 }

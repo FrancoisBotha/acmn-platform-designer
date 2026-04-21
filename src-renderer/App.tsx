@@ -27,6 +27,7 @@ import MilestoneNode from '@/components/nodes/MilestoneNode'
 import SentryEntryNode from '@/components/nodes/SentryEntryNode'
 import SentryExitNode from '@/components/nodes/SentryExitNode'
 import DiscretionaryItemNode from '@/components/nodes/DiscretionaryItemNode'
+import ConnectorNode from '@/components/nodes/ConnectorNode'
 import { acmnElementTypeMap, nodeTypeMap } from '@/lib/acmnElementTypes'
 
 const nodeTypes = {
@@ -44,6 +45,7 @@ const nodeTypes = {
   'sentry-entry': SentryEntryNode,
   'sentry-exit': SentryExitNode,
   'discretionary-item': DiscretionaryItemNode,
+  connector: ConnectorNode,
 }
 
 const noop = () => {}
@@ -76,14 +78,20 @@ export default function App() {
 
       const resolvedType = nodeTypeMap[elementType.id] ?? 'default'
 
+      const nodeData: Record<string, unknown> = {
+        label: elementType.label,
+        elementType: elementType.id,
+      }
+
+      if (elementType.connectorSubType) {
+        nodeData.connectorSubType = elementType.connectorSubType
+      }
+
       const newNode: Node = {
         id: nanoid(),
         type: resolvedType,
         position,
-        data: {
-          label: elementType.label,
-          elementType: elementType.id,
-        },
+        data: nodeData,
       }
 
       setNodes((nds) => {
