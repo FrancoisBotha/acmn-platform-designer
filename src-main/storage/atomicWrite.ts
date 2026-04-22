@@ -3,8 +3,36 @@ import path from 'path'
 
 const WINDOWS_RETRY_CODES = new Set(['EBUSY', 'EPERM'])
 const RETRY_BASE_MS = 50
+const MAX_BACKUPS = 3
 
-export async function writeAtomic(targetPath: string, contents: string): Promise<void> {
+export interface WriteAtomicOptions {
+  rotate?: boolean
+}
+
+export async function rotateBackups(targetPath: string): Promise<void> {
+  try {
+    await fs.access(targetPath)
+  } catch {
+    return
+  }
+
+  for (let i = MAX_BACKUPS - 1; i >= 1; i--) {
+    const src = `${targetPath}.bak.${i}`
+    const dst = `${targetPath}.bak.${i + 1}`
+    try {
+      await fs.rename(src, dst)
+    } catch (err: unknown) {
+      if (err instanceof Error && 'code' in err && (err as NodeJS.ErrnoException).code === 'ENOENT') {
+        continue
+      }
+      throw err
+    }
+  }
+
+  await fs.rename(targetPath, `${targetPath}.bak.1`)
+}
+
+export async function writeAtomic(targetPath: string, contents: string, options?: WriteAtomicOptions): Promise<void> {
   const tmpPath = targetPath + '.tmp'
   const handle = await fs.open(tmpPath, 'w')
   try {
@@ -12,6 +40,10 @@ export async function writeAtomic(targetPath: string, contents: string): Promise
     await handle.sync()
   } finally {
     await handle.close()
+  }
+
+  if (options?.rotate) {
+    await rotateBackups(targetPath)
   }
 
   try {

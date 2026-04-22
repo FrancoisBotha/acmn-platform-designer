@@ -169,7 +169,8 @@ export class LocalBackend implements BackendContract {
 
     await writeAtomic(
       path.join(projectPath, MANIFEST_FILENAME),
-      JSON.stringify(manifest, null, 2)
+      JSON.stringify(manifest, null, 2),
+      { rotate: true }
     )
 
     const project = manifestToProject(manifest, projectPath)
@@ -210,7 +211,8 @@ export class LocalBackend implements BackendContract {
 
     await writeAtomic(
       path.join(project.path, MANIFEST_FILENAME),
-      JSON.stringify(manifest, null, 2)
+      JSON.stringify(manifest, null, 2),
+      { rotate: true }
     )
   }
 
@@ -269,7 +271,8 @@ export class LocalBackend implements BackendContract {
 
     await writeAtomic(
       path.join(newPath, MANIFEST_FILENAME),
-      JSON.stringify(manifest, null, 2)
+      JSON.stringify(manifest, null, 2),
+      { rotate: true }
     )
 
     await this.addToRecentProjects(saved)
