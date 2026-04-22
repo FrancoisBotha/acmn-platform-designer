@@ -13,6 +13,7 @@ import { StageProperties } from './StageProperties'
 import { MilestoneProperties } from './MilestoneProperties'
 import { HumanTaskProperties } from './HumanTaskProperties'
 import { DomainContextProperties } from './DomainContextProperties'
+import { ConnectorProperties } from './ConnectorProperties'
 
 const DEFAULT_WIDTH = 400
 const MIN_WIDTH = 200
@@ -194,6 +195,12 @@ function getElementTypeId(node: Node): string {
   return (data.elementType as string) ?? node.type ?? ''
 }
 
+function isConnectorNode(node: Node): boolean {
+  const data = node.data as Record<string, unknown>
+  const elementType = (data.elementType as string) ?? ''
+  return elementType.startsWith('connector-')
+}
+
 const typedPanels: Record<string, React.ComponentType<{ node: Node }>> = {
   agent: AgentProperties,
   tool: ToolProperties,
@@ -231,6 +238,8 @@ function NodeProperties({ node }: { node: Node }) {
       <ElementHeader node={node} onNameChange={handleNameChange} />
       {TypedPanel ? (
         <TypedPanel node={node} />
+      ) : isConnectorNode(node) ? (
+        <ConnectorProperties node={node} />
       ) : (
         <div className="space-y-4">
           <div>
