@@ -17,6 +17,8 @@ export type {
   CasePlanModel,
   CasePlanModelNode,
   CasePlanModelEdge,
+  AcmnWireType,
+  BufferingStrategy,
   Stage,
   Milestone,
   Sentry,

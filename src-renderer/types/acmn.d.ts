@@ -1,4 +1,4 @@
-import type { Project, OpenProjectResult, BackupEntry, RecentProject, NewProjectParams } from '../contracts/backend'
+import type { Project, OpenProjectResult, BackupEntry, RecentProject, NewProjectParams, CasePlanModel } from '../contracts/backend'
 
 export interface RecoveryOption {
   filePath: string
@@ -27,6 +27,10 @@ export interface AcmnApi {
     applyRecovery(choice: RecoveryChoice): Promise<void>
     listBackups(filePath: string): Promise<BackupEntry[]>
     openFromBackup(projectPath: string, backupFilePath: string): Promise<OpenProjectResult>
+  }
+  cpm: {
+    load(projectPath: string, cpmFile: string): Promise<CasePlanModel>
+    save(projectPath: string, cpm: CasePlanModel & { file: string }): Promise<void>
   }
   dialog: {
     openFolder(): Promise<string | null>

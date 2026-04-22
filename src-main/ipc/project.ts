@@ -1,5 +1,5 @@
 import { ipcMain } from 'electron'
-import type { BackendContract, NewProjectParams, Project, RecoveryChoice } from '../backend/contract'
+import type { BackendContract, NewProjectParams, Project, CasePlanModel, RecoveryChoice } from '../backend/contract'
 import type { LocalBackend } from '../backend/localBackend'
 import { FutureVersionError, MigrationError, CorruptFileError } from '../storage/storageErrors'
 import { scanForRecoveryOptions, applyRecovery } from '../storage/crashRecovery'
@@ -109,5 +109,13 @@ export function registerProjectHandlers(backend: BackendContract): void {
 
   ipcMain.handle('project:openFromBackup', (_event, projectPath: string, backupFilePath: string) => {
     return wrapHandler(() => local.openFromBackup(projectPath, backupFilePath))
+  })
+
+  ipcMain.handle('cpm:load', (_event, projectPath: string, cpmFile: string) => {
+    return wrapHandler(() => local.getCasePlanModel(projectPath, cpmFile))
+  })
+
+  ipcMain.handle('cpm:save', (_event, projectPath: string, cpm: CasePlanModel) => {
+    return wrapHandler(() => local.saveCasePlanModel(projectPath, cpm))
   })
 }

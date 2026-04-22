@@ -18,6 +18,7 @@ import type {
   BackupEntry,
   CasePlanModelSummary,
   CasePlanModel,
+  CasePlanModelEdge,
   ValidationResult,
   PublishParams,
   PublishResult,
@@ -34,7 +35,7 @@ const RECENT_FILENAME = 'recent.json'
 const MAX_RECENT = 10
 
 export const CURRENT_PROJECT_FORMAT = '1'
-export const CURRENT_SCHEMA_VERSION = '1'
+export const CURRENT_SCHEMA_VERSION = '2'
 
 const PROJECT_SUBDIRS = [
   'case-plan-models',
@@ -416,12 +417,76 @@ export class LocalBackend implements BackendContract {
     throw new Error('not yet implemented')
   }
 
-  async getCasePlanModel(_projectId: string, _id: string): Promise<CasePlanModel> {
-    throw new Error('not yet implemented')
+  async getCasePlanModel(projectPath: string, cpmFile: string): Promise<CasePlanModel> {
+    validateAbsolutePath(projectPath)
+    validatePath(cpmFile, projectPath)
+    const filePath = path.join(projectPath, cpmFile)
+    const parsed = await loadFileWithVersionCheck(filePath, 'cpm', CURRENT_SCHEMA_VERSION)
+    const edges: CasePlanModelEdge[] = Array.isArray(parsed.edges)
+      ? (parsed.edges as Record<string, unknown>[]).map((e) => ({
+          id: String(e.id ?? ''),
+          source: String(e.source ?? ''),
+          sourceHandle: e.sourceHandle != null ? String(e.sourceHandle) : undefined,
+          target: String(e.target ?? ''),
+          targetHandle: e.targetHandle != null ? String(e.targetHandle) : undefined,
+          wireType: (e.wireType as CasePlanModelEdge['wireType']) ?? 'data',
+          buffering: (e.buffering as CasePlanModelEdge['buffering']) ?? 'immediate',
+          transform: e.transform != null ? String(e.transform) : undefined,
+          confidenceThreshold: typeof e.confidenceThreshold === 'number' ? e.confidenceThreshold : undefined,
+        }))
+      : []
+    return {
+      id: String(parsed.id ?? ''),
+      name: String(parsed.name ?? ''),
+      version: String(parsed.version ?? ''),
+      nodes: Array.isArray(parsed.nodes) ? (parsed.nodes as CasePlanModel['nodes']) : [],
+      edges,
+      stages: Array.isArray(parsed.stages) ? (parsed.stages as CasePlanModel['stages']) : [],
+      milestones: Array.isArray(parsed.milestones) ? (parsed.milestones as CasePlanModel['milestones']) : [],
+      sentries: Array.isArray(parsed.sentries) ? (parsed.sentries as CasePlanModel['sentries']) : [],
+      caseVariables: Array.isArray(parsed.caseVariables) ? (parsed.caseVariables as CasePlanModel['caseVariables']) : [],
+      domainContextRef: parsed.domainContextRef as CasePlanModel['domainContextRef'],
+      createdAt: String(parsed.createdAt ?? ''),
+      updatedAt: String(parsed.updatedAt ?? ''),
+    }
   }
 
-  async saveCasePlanModel(_projectId: string, _cpm: CasePlanModel): Promise<void> {
-    throw new Error('not yet implemented')
+  async saveCasePlanModel(projectPath: string, cpm: CasePlanModel): Promise<void> {
+    validateAbsolutePath(projectPath)
+    const file = (cpm as CasePlanModel & { file?: string }).file
+    if (!file) throw new Error('CasePlanModel must include a file path')
+    validatePath(file, projectPath)
+    const filePath = path.join(projectPath, file)
+    await fs.mkdir(path.dirname(filePath), { recursive: true })
+    const payload = {
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+      id: cpm.id,
+      name: cpm.name,
+      version: cpm.version,
+      nodes: cpm.nodes,
+      edges: cpm.edges.map((e) => {
+        const edge: Record<string, unknown> = {
+          id: e.id,
+          source: e.source,
+          target: e.target,
+          wireType: e.wireType ?? 'data',
+          buffering: e.buffering ?? 'immediate',
+        }
+        if (e.sourceHandle != null) edge.sourceHandle = e.sourceHandle
+        if (e.targetHandle != null) edge.targetHandle = e.targetHandle
+        if (e.transform != null) edge.transform = e.transform
+        if (e.confidenceThreshold != null) edge.confidenceThreshold = e.confidenceThreshold
+        return edge
+      }),
+      stages: cpm.stages,
+      milestones: cpm.milestones,
+      sentries: cpm.sentries,
+      caseVariables: cpm.caseVariables,
+      domainContextRef: cpm.domainContextRef,
+      createdAt: cpm.createdAt,
+      updatedAt: cpm.updatedAt,
+    }
+    await writeAtomic(filePath, JSON.stringify(payload, null, 2), { rotate: true })
   }
 
   async deleteCasePlanModel(_projectId: string, _id: string): Promise<void> {

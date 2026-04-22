@@ -20,6 +20,15 @@ export function registerMigration(
   migrationRegistry.set(makeKey(fileKind, fromVersion), step)
 }
 
+registerMigration('cpm', '1', (payload) => ({
+  toVersion: '2',
+  payload: {
+    ...payload,
+    schemaVersion: '2',
+    edges: Array.isArray(payload.edges) ? payload.edges : [],
+  },
+}))
+
 export function migrate(
   fileKind: FileKind,
   fromVersion: string,

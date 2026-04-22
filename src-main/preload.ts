@@ -80,6 +80,14 @@ contextBridge.exposeInMainWorld('acmn', {
       ipcRenderer.invoke('window:setTitle', title),
   },
 
+  cpm: {
+    load: (projectPath: string, cpmFile: string) =>
+      ipcRenderer.invoke('cpm:load', projectPath, cpmFile),
+
+    save: (projectPath: string, cpm: Record<string, unknown>) =>
+      ipcRenderer.invoke('cpm:save', projectPath, cpm),
+  },
+
   autoSave: {
     onFlushRequest: (callback: () => void) => {
       ipcRenderer.on('autosave:flush-request', () => callback())

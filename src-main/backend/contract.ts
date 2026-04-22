@@ -105,12 +105,19 @@ export interface CasePlanModelNode {
   properties: Record<string, unknown>
 }
 
+export type AcmnWireType = 'data' | 'confidence-gated' | 'escalation' | 'event' | 'case-file'
+export type BufferingStrategy = 'immediate' | 'batched' | 'coalesced'
+
 export interface CasePlanModelEdge {
   id: string
   source: string
+  sourceHandle?: string
   target: string
-  type: string
-  label?: string
+  targetHandle?: string
+  wireType: AcmnWireType
+  buffering: BufferingStrategy
+  transform?: string
+  confidenceThreshold?: number
 }
 
 export interface Stage {

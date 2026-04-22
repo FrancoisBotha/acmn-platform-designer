@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { nanoid } from 'nanoid'
-import type { Project, RecentProject } from '@/contracts/backend'
+import type { Edge } from '@xyflow/react'
+import type { Project, RecentProject, CasePlanModelEdge, AcmnWireType, BufferingStrategy } from '@/contracts/backend'
 import { useCanvasStore } from './canvasStore'
 
 const DEFAULT_AUTO_SAVE_INTERVAL = 30_000
@@ -49,6 +50,8 @@ export interface ProjectState {
   saveProjectAs: () => Promise<void>
   setActiveCpm: (id: string) => void
   createCpm: (name: string) => Promise<void>
+  loadActiveCpm: () => Promise<void>
+  saveActiveCpm: () => Promise<void>
   flushAutoSave: () => Promise<void>
 }
 
@@ -123,6 +126,7 @@ export const useProjectStore = create<ProjectState>()((set, get) => {
       if (!project) return
       set({ loading: true, error: null })
       try {
+        await get().saveActiveCpm()
         await window.acmn.project.save(project)
         set({ dirty: false, loading: false, lastSavedAt: Date.now() })
       } catch (err) {
@@ -186,6 +190,80 @@ export const useProjectStore = create<ProjectState>()((set, get) => {
       } catch (err) {
         set({ error: formatSaveError(err) })
       }
+    },
+
+    loadActiveCpm: async () => {
+      const { currentProject, activeCpmFile } = get()
+      if (!currentProject || !activeCpmFile) return
+      try {
+        const cpm = await window.acmn.cpm.load(currentProject.path, activeCpmFile)
+        const canvas = useCanvasStore.getState()
+        const rfEdges: Edge[] = (cpm.edges ?? []).map((e: CasePlanModelEdge) => ({
+          id: e.id,
+          source: e.source,
+          sourceHandle: e.sourceHandle ?? null,
+          target: e.target,
+          targetHandle: e.targetHandle ?? null,
+          type: e.wireType ?? 'data',
+          data: {
+            wireType: e.wireType ?? 'data',
+            buffering: e.buffering ?? 'immediate',
+            ...(e.transform != null ? { transform: e.transform } : {}),
+            ...(e.confidenceThreshold != null ? { confidenceThreshold: e.confidenceThreshold } : {}),
+          },
+        }))
+        canvas.applyNodesChange(
+          cpm.nodes.map((n) => ({ type: 'add' as const, item: { id: n.id, type: n.type, position: n.position, data: { label: n.label, ...n.properties, elementType: n.type }, parentId: n.parentId } }))
+        )
+        canvas.applyEdgesChange(
+          rfEdges.map((e) => ({ type: 'add' as const, item: e }))
+        )
+      } catch {
+        // File may not exist yet for a newly created CPM
+      }
+    },
+
+    saveActiveCpm: async () => {
+      const { currentProject, activeCpmId, activeCpmFile } = get()
+      if (!currentProject || !activeCpmId || !activeCpmFile) return
+      const { nodes, edges } = useCanvasStore.getState()
+      const cpmEdges: CasePlanModelEdge[] = edges.map((e: Edge) => {
+        const d = (e.data ?? {}) as Record<string, unknown>
+        const edge: CasePlanModelEdge = {
+          id: e.id,
+          source: e.source,
+          sourceHandle: e.sourceHandle ?? undefined,
+          target: e.target,
+          targetHandle: e.targetHandle ?? undefined,
+          wireType: ((d.wireType as string) ?? e.type ?? 'data') as AcmnWireType,
+          buffering: ((d.buffering as string) ?? 'immediate') as BufferingStrategy,
+        }
+        if (d.transform != null) edge.transform = String(d.transform)
+        if (typeof d.confidenceThreshold === 'number') edge.confidenceThreshold = d.confidenceThreshold
+        return edge
+      })
+      const cpm = {
+        id: activeCpmId,
+        name: currentProject.casePlanModels.find((c) => c.id === activeCpmId)?.file?.replace(/.*\//, '').replace(/\.json$/, '') ?? activeCpmId,
+        version: '1',
+        nodes: nodes.map((n) => ({
+          id: n.id,
+          type: n.type ?? '',
+          label: String((n.data as Record<string, unknown>).label ?? ''),
+          position: n.position,
+          parentId: n.parentId,
+          properties: { ...(n.data as Record<string, unknown>) },
+        })),
+        edges: cpmEdges,
+        stages: [],
+        milestones: [],
+        sentries: [],
+        caseVariables: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        file: activeCpmFile,
+      }
+      await window.acmn.cpm.save(currentProject.path, cpm as never)
     },
 
     flushAutoSave: async () => {
