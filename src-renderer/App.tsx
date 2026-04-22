@@ -80,12 +80,41 @@ function DesignCanvas() {
   const undo = useCanvasStore((s) => s.undo)
   const redo = useCanvasStore((s) => s.redo)
   const clearSelection = useCanvasStore((s) => s.clearSelection)
+  const copySelection = useCanvasStore((s) => s.copySelection)
+  const cutSelection = useCanvasStore((s) => s.cutSelection)
+  const pasteClipboard = useCanvasStore((s) => s.pasteClipboard)
 
   const reactFlowInstance = useRef<ReactFlowInstance | null>(null)
   const dragStartPositions = useRef<Map<string, { x: number; y: number }> | null>(null)
 
   const saveProject = useProjectStore((s) => s.saveProject)
   const saveProjectAs = useProjectStore((s) => s.saveProjectAs)
+  const dirty = useProjectStore((s) => s.dirty)
+  const clearProject = useProjectStore((s) => s.clearProject)
+  const currentProject = useProjectStore((s) => s.currentProject)
+  const activeCpmFile = useProjectStore((s) => s.activeCpmFile)
+
+  const prevCpmRef = useRef(activeCpmFile)
+  useEffect(() => {
+    if (prevCpmRef.current !== activeCpmFile) {
+      clearSelection()
+      prevCpmRef.current = activeCpmFile
+    }
+  }, [activeCpmFile, clearSelection])
+
+  useEffect(() => {
+    if (!currentProject) {
+      useCanvasStore.getState().clearClipboard()
+    }
+  }, [currentProject])
+
+  useEffect(() => {
+    if (!currentProject) return
+    const cpmPart = activeCpmFile ? ` · ${activeCpmFile}` : ''
+    const dirtyPart = dirty ? ' — modified' : ''
+    const title = `ACMN Designer — ${currentProject.name}${cpmPart}${dirtyPart}`
+    window.acmn.window.setTitle(title)
+  }, [currentProject, activeCpmFile, dirty])
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -119,6 +148,25 @@ function DesignCanvas() {
       } else if (e.key === 'y' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault()
         redo()
+      } else if (e.key === 'c' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault()
+        copySelection()
+      } else if (e.key === 'x' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault()
+        cutSelection()
+      } else if (e.key === 'v' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault()
+        if (reactFlowInstance.current) {
+          const pane = document.querySelector('.react-flow')
+          if (pane) {
+            const rect = pane.getBoundingClientRect()
+            const center = reactFlowInstance.current.screenToFlowPosition({
+              x: rect.left + rect.width / 2,
+              y: rect.top + rect.height / 2,
+            })
+            pasteClipboard(center)
+          }
+        }
       } else if (e.key === 'Delete' || e.key === 'Backspace') {
         const state = useCanvasStore.getState()
         const selectedNodeIds = state.nodes.filter((n) => n.selected).map((n) => n.id)
@@ -131,7 +179,7 @@ function DesignCanvas() {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [undo, redo, pushCommand, saveProject, saveProjectAs])
+  }, [undo, redo, pushCommand, saveProject, saveProjectAs, copySelection, cutSelection, pasteClipboard])
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {

@@ -141,3 +141,22 @@ export class RemoveWireCommand extends PatchCommand {
     draft.edges = draft.edges.filter((e) => !idSet.has(e.id))
   }
 }
+
+export class PasteElementsCommand extends PatchCommand {
+  readonly type = 'pasteElements'
+  constructor(
+    private pastedNodes: Node[],
+    private pastedEdges: Edge[],
+  ) {
+    super()
+  }
+
+  protected recipe(draft: CanvasData) {
+    for (const n of this.pastedNodes) {
+      draft.nodes.push(n as Node)
+    }
+    for (const e of this.pastedEdges) {
+      draft.edges.push(e as Edge)
+    }
+  }
+}
