@@ -2,7 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 
 contextBridge.exposeInMainWorld('acmn', {
   project: {
-    new: (params: { name: string; location: string; description?: string; template?: string }) =>
+    create: (params: { name: string; location: string; description?: string; template?: string }) =>
       ipcRenderer.invoke('project:new', params),
 
     open: (projectPath: string) =>
@@ -55,5 +55,8 @@ contextBridge.exposeInMainWorld('acmn', {
 
     saveFolder: () =>
       ipcRenderer.invoke('dialog:saveFolder'),
+
+    checkFolderEmpty: (folderPath: string) =>
+      ipcRenderer.invoke('dialog:checkFolderEmpty', folderPath),
   },
 })
