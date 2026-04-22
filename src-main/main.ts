@@ -1,7 +1,24 @@
 import { app, BrowserWindow } from 'electron'
 import path from 'path'
+import type { BackendContract } from './backend/contract'
+import { RemoteBackend } from './backend/remoteBackend'
 
 let mainWindow: BrowserWindow | null = null
+let backend: BackendContract
+
+function createBackend(): BackendContract {
+  const setting = process.env.ACMN_BACKEND ?? 'local'
+
+  if (setting === 'remote') {
+    return new RemoteBackend()
+  }
+
+  // LocalBackend is not yet implemented — will be added by a subsequent ticket.
+  // For now, fall through to RemoteBackend as a placeholder when 'local' is selected,
+  // since LocalBackend does not exist yet. This keeps the factory structure correct
+  // while allowing the spike code to continue running (it doesn't call backend methods).
+  return new RemoteBackend()
+}
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
@@ -22,7 +39,10 @@ function createWindow(): void {
   }
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(() => {
+  backend = createBackend()
+  createWindow()
+})
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -35,3 +55,5 @@ app.on('activate', () => {
     createWindow()
   }
 })
+
+export { backend }
