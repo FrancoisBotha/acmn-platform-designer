@@ -1,6 +1,7 @@
 import { ipcMain } from 'electron'
-import type { BackendContract, NewProjectParams, Project } from '../backend/contract'
+import type { BackendContract, NewProjectParams, Project, RecoveryChoice } from '../backend/contract'
 import { FutureVersionError, MigrationError, CorruptFileError } from '../storage/storageErrors'
+import { scanForRecoveryOptions, applyRecovery } from '../storage/crashRecovery'
 
 export interface SerializedStorageError {
   name: string
@@ -84,5 +85,18 @@ export function registerProjectHandlers(backend: BackendContract): void {
 
   ipcMain.handle('project:removeRecent', (_event, projectPath: string) => {
     return backend.removeRecentProject(projectPath)
+  })
+
+  ipcMain.handle('project:recover', async () => {
+    const recentProjects = await backend.getRecentProjects()
+    if (recentProjects.length === 0) {
+      return []
+    }
+    const lastOpened = recentProjects[0]
+    return scanForRecoveryOptions(lastOpened.path)
+  })
+
+  ipcMain.handle('project:applyRecovery', (_event, choice: RecoveryChoice) => {
+    return applyRecovery(choice)
   })
 }

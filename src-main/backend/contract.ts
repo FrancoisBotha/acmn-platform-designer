@@ -229,6 +229,21 @@ export interface TestExpectedOutcome {
   assertion: string
 }
 
+// ---- Recovery types ----
+
+export interface RecoveryOption {
+  filePath: string
+  tmpPath: string
+  lastSavedPath: string
+  backupPaths: string[]
+}
+
+export interface RecoveryChoice {
+  filePath: string
+  choice: 'use-tmp' | 'use-last-saved' | 'use-backup'
+  backupIndex?: number
+}
+
 // ---- Backend contract ----
 
 export interface BackendContract {

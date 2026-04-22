@@ -47,6 +47,15 @@ contextBridge.exposeInMainWorld('acmn', {
 
     removeRecent: (projectPath: string) =>
       ipcRenderer.invoke('project:removeRecent', projectPath),
+
+    recover: () =>
+      ipcRenderer.invoke('project:recover'),
+
+    applyRecovery: (choice: {
+      filePath: string
+      choice: 'use-tmp' | 'use-last-saved' | 'use-backup'
+      backupIndex?: number
+    }) => ipcRenderer.invoke('project:applyRecovery', choice),
   },
 
   dialog: {
