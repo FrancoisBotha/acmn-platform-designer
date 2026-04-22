@@ -2,6 +2,7 @@ import fs from 'fs/promises'
 import path from 'path'
 import { app } from 'electron'
 import { randomUUID } from 'crypto'
+import { writeAtomic } from '../storage/atomicWrite'
 import type {
   BackendContract,
   Credentials,
@@ -166,10 +167,9 @@ export class LocalBackend implements BackendContract {
       domainContexts: [],
     }
 
-    await fs.writeFile(
+    await writeAtomic(
       path.join(projectPath, MANIFEST_FILENAME),
-      JSON.stringify(manifest, null, 2),
-      'utf-8'
+      JSON.stringify(manifest, null, 2)
     )
 
     const project = manifestToProject(manifest, projectPath)
@@ -208,10 +208,9 @@ export class LocalBackend implements BackendContract {
       modified: new Date().toISOString(),
     })
 
-    await fs.writeFile(
+    await writeAtomic(
       path.join(project.path, MANIFEST_FILENAME),
-      JSON.stringify(manifest, null, 2),
-      'utf-8'
+      JSON.stringify(manifest, null, 2)
     )
   }
 
@@ -268,10 +267,9 @@ export class LocalBackend implements BackendContract {
       }
     }
 
-    await fs.writeFile(
+    await writeAtomic(
       path.join(newPath, MANIFEST_FILENAME),
-      JSON.stringify(manifest, null, 2),
-      'utf-8'
+      JSON.stringify(manifest, null, 2)
     )
 
     await this.addToRecentProjects(saved)
@@ -301,7 +299,7 @@ export class LocalBackend implements BackendContract {
     const filtered = entries.filter((r) => r.path !== projectPath)
     const recentPath = this.getRecentFilePath()
     await fs.mkdir(path.dirname(recentPath), { recursive: true })
-    await fs.writeFile(recentPath, JSON.stringify(filtered, null, 2), 'utf-8')
+    await writeAtomic(recentPath, JSON.stringify(filtered, null, 2))
   }
 
   // ==== Case plan models (not implemented in this ticket) ====
@@ -417,7 +415,7 @@ export class LocalBackend implements BackendContract {
 
     const recentPath = this.getRecentFilePath()
     await fs.mkdir(path.dirname(recentPath), { recursive: true })
-    await fs.writeFile(recentPath, JSON.stringify(trimmed, null, 2), 'utf-8')
+    await writeAtomic(recentPath, JSON.stringify(trimmed, null, 2))
   }
 }
 
