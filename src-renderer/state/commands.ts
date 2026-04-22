@@ -142,6 +142,45 @@ export class RemoveWireCommand extends PatchCommand {
   }
 }
 
+export class UpdateWireCommand extends PatchCommand {
+  readonly type = 'updateWire'
+  constructor(
+    private edgeId: string,
+    private newProps: Record<string, unknown>,
+  ) {
+    super()
+  }
+
+  protected recipe(draft: CanvasData) {
+    const edge = draft.edges.find((e) => e.id === this.edgeId)
+    if (edge) {
+      if (!edge.data) edge.data = {}
+      Object.assign(edge.data, this.newProps)
+    }
+  }
+}
+
+export class BatchCommand implements CanvasCommand {
+  readonly type = 'batch'
+  constructor(private commands: CanvasCommand[]) {}
+
+  apply(data: CanvasData): CanvasData {
+    let current = data
+    for (const cmd of this.commands) {
+      current = cmd.apply(current)
+    }
+    return current
+  }
+
+  undo(data: CanvasData): CanvasData {
+    let current = data
+    for (let i = this.commands.length - 1; i >= 0; i--) {
+      current = this.commands[i].undo(current)
+    }
+    return current
+  }
+}
+
 export class PasteElementsCommand extends PatchCommand {
   readonly type = 'pasteElements'
   constructor(

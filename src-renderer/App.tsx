@@ -50,7 +50,10 @@ import { useCanvasStore } from '@/state/canvasStore'
 import {
   AddElementCommand,
   AddWireCommand,
+  RemoveWireCommand,
+  UpdateWireCommand,
   RemoveElementCommand,
+  BatchCommand,
   MoveElementCommand,
   type MoveEntry,
 } from '@/state/commands'
@@ -61,6 +64,7 @@ import { DirtyCheckDialog } from '@/components/DirtyCheckDialog'
 import { MigrationToast } from '@/components/MigrationToast'
 import { RecoveryDialog } from '@/components/RecoveryDialog'
 import { SelectionBadge } from '@/components/SelectionBadge'
+import { WireProperties } from '@/components/WireProperties'
 import { TestPlaceholder } from '@/features/test/TestPlaceholder'
 import { PublishPlaceholder } from '@/features/publish/PublishPlaceholder'
 import { ProjectTree } from '@/features/canvas/panels/ProjectTree'
@@ -110,6 +114,7 @@ function DesignCanvas() {
 
   const reactFlowInstance = useRef<ReactFlowInstance | null>(null)
   const dragStartPositions = useRef<Map<string, { x: number; y: number }> | null>(null)
+  const [edgeContextMenu, setEdgeContextMenu] = useState<{ x: number; y: number; edgeId: string } | null>(null)
 
   const saveProject = useProjectStore((s) => s.saveProject)
   const saveProjectAs = useProjectStore((s) => s.saveProjectAs)
@@ -197,7 +202,23 @@ function DesignCanvas() {
         const selectedEdgeIds = state.edges.filter((ed) => ed.selected).map((ed) => ed.id)
         if (selectedNodeIds.length > 0 || selectedEdgeIds.length > 0) {
           e.preventDefault()
-          pushCommand(new RemoveElementCommand(selectedNodeIds, selectedEdgeIds))
+          if (selectedNodeIds.length === 0) {
+            pushCommand(new RemoveWireCommand(selectedEdgeIds))
+          } else {
+            const nodeIdSet = new Set(selectedNodeIds)
+            const cascadedEdgeIds = state.edges
+              .filter((ed) => !selectedEdgeIds.includes(ed.id) && (nodeIdSet.has(ed.source) || nodeIdSet.has(ed.target)))
+              .map((ed) => ed.id)
+            const allEdgeIds = [...selectedEdgeIds, ...cascadedEdgeIds]
+            if (allEdgeIds.length > 0) {
+              pushCommand(new BatchCommand([
+                new RemoveWireCommand(allEdgeIds),
+                new RemoveElementCommand(selectedNodeIds),
+              ]))
+            } else {
+              pushCommand(new RemoveElementCommand(selectedNodeIds))
+            }
+          }
         }
       }
     }
@@ -362,6 +383,28 @@ function DesignCanvas() {
     [],
   )
 
+  const onEdgeContextMenu = useCallback(
+    (event: React.MouseEvent, edge: Edge) => {
+      event.preventDefault()
+      setEdgeContextMenu({ x: event.clientX, y: event.clientY, edgeId: edge.id })
+    },
+    [],
+  )
+
+  const handleEdgeContextMenuDelete = useCallback(() => {
+    if (edgeContextMenu) {
+      pushCommand(new RemoveWireCommand([edgeContextMenu.edgeId]))
+      setEdgeContextMenu(null)
+    }
+  }, [edgeContextMenu, pushCommand])
+
+  useEffect(() => {
+    if (!edgeContextMenu) return
+    const dismiss = () => setEdgeContextMenu(null)
+    window.addEventListener('click', dismiss)
+    return () => window.removeEventListener('click', dismiss)
+  }, [edgeContextMenu])
+
   return (
     <div className="flex flex-1 overflow-hidden">
       <Palette />
@@ -382,6 +425,7 @@ function DesignCanvas() {
           onDrop={onDrop}
           onConnect={onConnect}
           onConnectEnd={onConnectEnd}
+          onEdgeContextMenu={onEdgeContextMenu}
           isValidConnection={isValidConnection}
           connectionMode={ConnectionMode.Loose}
           nodeTypes={nodeTypes}
@@ -399,11 +443,30 @@ function DesignCanvas() {
           <MiniMap position="bottom-right" />
           <SelectionBadge />
         </ReactFlow>
+        {edgeContextMenu && (
+          <div
+            className="fixed z-50 min-w-[120px] rounded border border-border bg-popover py-1 shadow-md"
+            style={{ left: edgeContextMenu.x, top: edgeContextMenu.y }}
+          >
+            <button
+              className="w-full px-3 py-1.5 text-left text-sm hover:bg-accent"
+              onClick={handleEdgeContextMenuDelete}
+            >
+              Delete
+            </button>
+          </div>
+        )}
       </main>
 
       <aside className="w-72 shrink-0 border-l border-border bg-muted/40 p-4">
         <h2 className="mb-3 text-sm font-semibold tracking-tight">Properties</h2>
-        <p className="text-xs text-muted-foreground">Select a node to view its properties</p>
+        {(() => {
+          const selectedEdge = edges.find((e) => e.selected)
+          if (selectedEdge) {
+            return <WireProperties edge={selectedEdge} />
+          }
+          return <p className="text-xs text-muted-foreground">Select a node or wire to view its properties</p>
+        })()}
       </aside>
     </div>
   )
