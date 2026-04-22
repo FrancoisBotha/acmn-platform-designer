@@ -36,7 +36,15 @@ import SentryExitNode from '@/components/nodes/SentryExitNode'
 import DiscretionaryItemNode from '@/components/nodes/DiscretionaryItemNode'
 import ConnectorNode from '@/components/nodes/ConnectorNode'
 import AcmnWireEdge from '@/components/edges/AcmnWireEdge'
+import {
+  DataEdge,
+  ConfidenceGatedEdge,
+  EscalationEdge,
+  EventEdge,
+  CaseFileEdge,
+} from '@/features/canvas/edges'
 import { acmnElementTypeMap, nodeTypeMap } from '@/lib/acmnElementTypes'
+import { inferWireType } from '@/lib/inferWireType'
 import { useProjectStore } from '@/state/projectStore'
 import { useCanvasStore } from '@/state/canvasStore'
 import {
@@ -46,7 +54,7 @@ import {
   MoveElementCommand,
   type MoveEntry,
 } from '@/state/commands'
-import { canConnect } from '@/state/canvasStore'
+import { canConnect, lookupPort } from '@/state/canvasStore'
 import { WelcomeScreen } from '@/features/welcome/WelcomeScreen'
 import { TopBar } from '@/components/TopBar'
 import { DirtyCheckDialog } from '@/components/DirtyCheckDialog'
@@ -78,6 +86,11 @@ const nodeTypes = {
 
 const edgeTypes = {
   'acmn-wire': AcmnWireEdge,
+  'data': DataEdge,
+  'confidence-gated': ConfidenceGatedEdge,
+  'escalation': EscalationEdge,
+  'event': EventEdge,
+  'case-file': CaseFileEdge,
 }
 
 const containerNodeTypes = new Set(['stage', 'case-plan-model'])
@@ -309,13 +322,33 @@ function DesignCanvas() {
 
   const onConnect = useCallback(
     (connection: Connection) => {
+      const sourcePort = lookupPort(connection.source, connection.sourceHandle ?? '')
+      const targetPort = lookupPort(connection.target, connection.targetHandle ?? '')
+
+      const sourceNode = useCanvasStore.getState().nodes.find((n) => n.id === connection.source)
+      const sourceElementType = (sourceNode?.data.elementType as string) ?? sourceNode?.type ?? ''
+
+      const wireType = sourcePort && targetPort
+        ? inferWireType(
+            {
+              portType: sourcePort.portType,
+              elementType: sourceElementType,
+              hasConfidenceThreshold: !!(sourceNode?.data as Record<string, unknown>)?.confidenceThreshold,
+            },
+            {
+              portType: targetPort.portType,
+              elementType: (useCanvasStore.getState().nodes.find((n) => n.id === connection.target)?.data.elementType as string) ?? '',
+            },
+          )
+        : 'data'
+
       const edge: Edge = {
         id: nanoid(),
         source: connection.source,
         sourceHandle: connection.sourceHandle,
         target: connection.target,
         targetHandle: connection.targetHandle,
-        type: 'acmn-wire',
+        type: wireType,
       }
       pushCommand(new AddWireCommand(edge))
     },
