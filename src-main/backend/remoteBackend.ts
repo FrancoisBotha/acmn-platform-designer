@@ -40,7 +40,15 @@ export class RemoteBackend implements BackendContract {
     throw new Error('not yet implemented')
   }
 
+  async saveProjectAs(_project: Project, _newPath: string): Promise<Project> {
+    throw new Error('not yet implemented')
+  }
+
   async getRecentProjects(): Promise<RecentProject[]> {
+    throw new Error('not yet implemented')
+  }
+
+  async removeRecentProject(_path: string): Promise<void> {
     throw new Error('not yet implemented')
   }
 

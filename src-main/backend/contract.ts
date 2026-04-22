@@ -55,6 +55,7 @@ export interface RecentProject {
   name: string
   path: string
   lastModified: string
+  missing?: boolean
 }
 
 // ---- Case plan model types ----
@@ -239,7 +240,9 @@ export interface BackendContract {
   newProject(params: NewProjectParams): Promise<Project>
   openProject(path: string): Promise<Project>
   saveProject(project: Project): Promise<void>
+  saveProjectAs(project: Project, newPath: string): Promise<Project>
   getRecentProjects(): Promise<RecentProject[]>
+  removeRecentProject(projectPath: string): Promise<void>
 
   // ==== Case plan models ====
   listCasePlanModels(projectId: string): Promise<CasePlanModelSummary[]>

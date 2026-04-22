@@ -44,6 +44,9 @@ contextBridge.exposeInMainWorld('acmn', {
 
     listRecent: () =>
       ipcRenderer.invoke('project:listRecent'),
+
+    removeRecent: (projectPath: string) =>
+      ipcRenderer.invoke('project:removeRecent', projectPath),
   },
 
   dialog: {

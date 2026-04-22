@@ -15,7 +15,7 @@ export function registerProjectHandlers(backend: BackendContract): void {
   })
 
   ipcMain.handle('project:saveAs', (_event, project: Project, newPath: string) => {
-    return backend.saveProject({ ...project, path: newPath })
+    return backend.saveProjectAs(project, newPath)
   })
 
   ipcMain.handle('project:close', () => {
@@ -24,5 +24,9 @@ export function registerProjectHandlers(backend: BackendContract): void {
 
   ipcMain.handle('project:listRecent', () => {
     return backend.getRecentProjects()
+  })
+
+  ipcMain.handle('project:removeRecent', (_event, projectPath: string) => {
+    return backend.removeRecentProject(projectPath)
   })
 }

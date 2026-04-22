@@ -215,14 +215,57 @@ export class LocalBackend implements BackendContract {
     )
   }
 
-  async getRecentProjects(): Promise<RecentProject[]> {
-    try {
-      const recentPath = this.getRecentFilePath()
-      const raw = await fs.readFile(recentPath, 'utf-8')
-      return JSON.parse(raw) as RecentProject[]
-    } catch {
-      return []
+  async saveProjectAs(project: Project, newPath: string): Promise<Project> {
+    validateAbsolutePath(newPath)
+
+    const saved = {
+      ...project,
+      path: newPath,
+      modified: new Date().toISOString(),
     }
+
+    const manifest = projectToManifest(saved)
+
+    await fs.mkdir(newPath, { recursive: true })
+
+    for (const subdir of PROJECT_SUBDIRS) {
+      await fs.mkdir(path.join(newPath, subdir), { recursive: true })
+    }
+
+    await fs.writeFile(
+      path.join(newPath, MANIFEST_FILENAME),
+      JSON.stringify(manifest, null, 2),
+      'utf-8'
+    )
+
+    await this.addToRecentProjects(saved)
+
+    return saved
+  }
+
+  async getRecentProjects(): Promise<RecentProject[]> {
+    const entries = await this.readRecentFile()
+
+    const results: RecentProject[] = []
+    for (const entry of entries) {
+      const manifestPath = path.join(entry.path, MANIFEST_FILENAME)
+      try {
+        await fs.access(manifestPath)
+        results.push({ name: entry.name, path: entry.path, lastModified: entry.lastModified })
+      } catch {
+        results.push({ name: entry.name, path: entry.path, lastModified: entry.lastModified, missing: true })
+      }
+    }
+
+    return results
+  }
+
+  async removeRecentProject(projectPath: string): Promise<void> {
+    const entries = await this.readRecentFile()
+    const filtered = entries.filter((r) => r.path !== projectPath)
+    const recentPath = this.getRecentFilePath()
+    await fs.mkdir(path.dirname(recentPath), { recursive: true })
+    await fs.writeFile(recentPath, JSON.stringify(filtered, null, 2), 'utf-8')
   }
 
   // ==== Case plan models (not implemented in this ticket) ====
@@ -313,8 +356,18 @@ export class LocalBackend implements BackendContract {
     return path.join(app.getPath('userData'), RECENT_FILENAME)
   }
 
+  private async readRecentFile(): Promise<RecentProject[]> {
+    try {
+      const recentPath = this.getRecentFilePath()
+      const raw = await fs.readFile(recentPath, 'utf-8')
+      return JSON.parse(raw) as RecentProject[]
+    } catch {
+      return []
+    }
+  }
+
   private async addToRecentProjects(project: Project): Promise<void> {
-    const recent = await this.getRecentProjects()
+    const recent = await this.readRecentFile()
 
     const filtered = recent.filter((r) => r.path !== project.path)
 
