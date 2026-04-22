@@ -35,7 +35,7 @@ const RECENT_FILENAME = 'recent.json'
 const MAX_RECENT = 10
 
 export const CURRENT_PROJECT_FORMAT = '1'
-export const CURRENT_SCHEMA_VERSION = '2'
+export const CURRENT_SCHEMA_VERSION = '3'
 
 const PROJECT_SUBDIRS = [
   'case-plan-models',

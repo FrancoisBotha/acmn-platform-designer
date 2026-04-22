@@ -29,6 +29,15 @@ registerMigration('cpm', '1', (payload) => ({
   },
 }))
 
+registerMigration('cpm', '2', (payload) => ({
+  toVersion: '3',
+  payload: {
+    ...payload,
+    schemaVersion: '3',
+    variables: Array.isArray(payload.variables) ? payload.variables : [],
+  },
+}))
+
 export function migrate(
   fileKind: FileKind,
   fromVersion: string,

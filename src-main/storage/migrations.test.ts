@@ -211,3 +211,84 @@ describe('migration registry', () => {
     assert.equal(migrationRegistry.size, 0)
   })
 })
+
+describe('cpm v2 → v3 migration (variables)', () => {
+  it('initialises variables as empty array for a v2 fixture without variables', async () => {
+    registerMigration('cpm', '1', (payload) => ({
+      toVersion: '2',
+      payload: { ...payload, schemaVersion: '2', edges: [] },
+    }))
+    registerMigration('cpm', '2', (payload) => ({
+      toVersion: '3',
+      payload: {
+        ...payload,
+        schemaVersion: '3',
+        variables: Array.isArray(payload.variables) ? payload.variables : [],
+      },
+    }))
+
+    const filePath = path.join(tmpDir, 'v2-fixture.cpm.json')
+    await fs.writeFile(
+      filePath,
+      JSON.stringify({
+        schemaVersion: '2',
+        id: 'cpm-1',
+        name: 'Test CPM',
+        edges: [{ id: 'e1', source: 'a', target: 'b', wireType: 'data', buffering: 'immediate' }],
+        nodes: [{ id: 'n1', type: 'humanTask', label: 'Task', position: { x: 0, y: 0 } }],
+      })
+    )
+
+    const result = await loadFileWithVersionCheck(filePath, 'cpm', '3')
+
+    assert.equal(result.schemaVersion, '3')
+    assert.ok(Array.isArray(result.variables), 'variables should be an array')
+    assert.equal((result.variables as unknown[]).length, 0)
+    assert.equal(result.name, 'Test CPM')
+    assert.ok(Array.isArray(result.edges), 'edges should be preserved')
+    assert.equal((result.edges as unknown[]).length, 1)
+    assert.ok(Array.isArray(result.nodes), 'nodes should be preserved')
+  })
+
+  it('preserves existing variables if already present in a v2 file', () => {
+    registerMigration('cpm', '2', (payload) => ({
+      toVersion: '3',
+      payload: {
+        ...payload,
+        schemaVersion: '3',
+        variables: Array.isArray(payload.variables) ? payload.variables : [],
+      },
+    }))
+
+    const existingVars = [{ name: 'amount', type: 'currency' }]
+    const input = { schemaVersion: '2', name: 'test', variables: existingVars }
+    const result = migrate('cpm', '2', '3', input)
+
+    assert.equal(result.toVersion, '3')
+    assert.deepEqual(result.payload.variables, existingVars)
+  })
+
+  it('chains v1 → v2 → v3 with no data loss', () => {
+    registerMigration('cpm', '1', (payload) => ({
+      toVersion: '2',
+      payload: { ...payload, schemaVersion: '2', edges: [] },
+    }))
+    registerMigration('cpm', '2', (payload) => ({
+      toVersion: '3',
+      payload: {
+        ...payload,
+        schemaVersion: '3',
+        variables: Array.isArray(payload.variables) ? payload.variables : [],
+      },
+    }))
+
+    const input = { schemaVersion: '1', name: 'old-cpm', nodes: [{ id: 'n1' }] }
+    const result = migrate('cpm', '1', '3', input)
+
+    assert.equal(result.toVersion, '3')
+    assert.deepEqual(result.payload.variables, [])
+    assert.deepEqual(result.payload.edges, [])
+    assert.equal(result.payload.name, 'old-cpm')
+    assert.deepEqual(result.payload.nodes, [{ id: 'n1' }])
+  })
+})
