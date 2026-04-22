@@ -6,6 +6,9 @@ import { useProjectStore } from '@/state/projectStore'
 import { acmnElementTypeMap } from '@/lib/acmnElementTypes'
 import { WireProperties } from './WireProperties'
 import { AgentProperties } from './AgentProperties'
+import { ToolProperties } from './ToolProperties'
+import { GuardrailProperties } from './GuardrailProperties'
+import { EvaluatorProperties } from './EvaluatorProperties'
 
 const DEFAULT_WIDTH = 400
 const MIN_WIDTH = 200
@@ -135,6 +138,18 @@ function ElementHeader({
   )
 }
 
+function getElementTypeId(node: Node): string {
+  const data = node.data as Record<string, unknown>
+  return (data.elementType as string) ?? node.type ?? ''
+}
+
+const typedPanels: Record<string, React.ComponentType<{ node: Node }>> = {
+  agent: AgentProperties,
+  tool: ToolProperties,
+  guardrail: GuardrailProperties,
+  evaluator: EvaluatorProperties,
+}
+
 function NodeProperties({ node }: { node: Node }) {
   const applyNodesChange = useCanvasStore((s) => s.applyNodesChange)
 
@@ -153,22 +168,21 @@ function NodeProperties({ node }: { node: Node }) {
     [node, applyNodesChange],
   )
 
-  const data = node.data as Record<string, unknown>
-  const elementTypeId = (data.elementType as string) ?? node.type ?? ''
-  const isAgent = elementTypeId === 'agent'
+  const typeId = getElementTypeId(node)
+  const TypedPanel = typedPanels[typeId]
 
   return (
     <div>
       <ElementHeader node={node} onNameChange={handleNameChange} />
-      {isAgent ? (
-        <AgentProperties node={node} />
+      {TypedPanel ? (
+        <TypedPanel node={node} />
       ) : (
         <div className="space-y-4">
           <div>
             <label className="block text-xs font-medium mb-1">Element Type</label>
             <input
               className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
-              value={acmnElementTypeMap.get(elementTypeId)?.label ?? elementTypeId}
+              value={acmnElementTypeMap.get(typeId)?.label ?? typeId}
               readOnly
             />
           </div>
