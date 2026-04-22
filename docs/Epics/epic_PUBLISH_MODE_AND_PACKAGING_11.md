@@ -126,7 +126,7 @@ by re-publishing a prior version.
 ## 4. Functional Requirements
 
 - **FR-021** — Three canvas modes via top tabs (already delivered
-  by epic_CANVAS_INTERACTION); this epic wires the Publish tab to
+  by epic_CANVAS_INTERACTION_03); this epic wires the Publish tab to
   a dedicated Publish view.
 - **FR-024** — In Publish mode, display a publish dialog with
   pre-flight validation checks and deployment details.
@@ -211,7 +211,7 @@ by re-publishing a prior version.
 
 - **CPM schema addition.** `version: "major.minor.patch"` field;
   default `"0.1.0"` on new CPMs. If absent on older files, the
-  migration harness (epic_AUTOSAVE_AND_RECOVERY) fills it with
+  migration harness (epic_AUTOSAVE_AND_RECOVERY_02) fills it with
   `"0.1.0"`.
 - **CPM schema addition.** `publishedVersions[]` — optional, local
   history entries `{ version, timestamp, releaseNotes,
@@ -232,8 +232,8 @@ by re-publishing a prior version.
   ```
 - **New validation** — Zod-backed `validateCasePlanModel` in the
   main process implementing every pre-flight rule; reuses Zod
-  schemas from epic_PROPERTY_PANEL and
-  epic_CASE_VARIABLES_AND_SENTRIES. Returns
+  schemas from epic_PROPERTY_PANEL_05 and
+  epic_CASE_VARIABLES_AND_SENTRIES_06. Returns
   `ValidationResult { errors[], warnings[] }`.
 
 ---
@@ -254,7 +254,7 @@ by re-publishing a prior version.
   "not yet implemented" when remote is selected; the contract
   accepts the same `PublishParams` for v0.2+ parity.
 - **Test run dependency.** Pre-flight reads `lastRun.result` from
-  `.test.json` files (epic_TEST_MODE_AND_SIMULATOR) to check "at
+  `.test.json` files (epic_TEST_MODE_AND_SIMULATOR_10) to check "at
   least one test passed".
 
 ---
@@ -297,7 +297,7 @@ by re-publishing a prior version.
 - **Pre-flight coverage vs user frustration.** Strict pre-flight
   catches mistakes but can be annoying mid-design. Ensure checks
   only run at publish time, not constantly. Users still see
-  inline errors from epic_PROPERTY_PANEL during design.
+  inline errors from epic_PROPERTY_PANEL_05 during design.
 - **Domain context bundling.** Reference-mode contexts are
   resolved at publish time. If the source context changes between
   publishes, the package captures the then-current version —
@@ -322,17 +322,17 @@ by re-publishing a prior version.
 ## 11. Dependencies
 
 - **Upstream:**
-  - epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE (LocalBackend +
+  - epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE_01 (LocalBackend +
     `dist/` folder).
-  - epic_AUTOSAVE_AND_RECOVERY (atomic writes; dependency on
+  - epic_AUTOSAVE_AND_RECOVERY_02 (atomic writes; dependency on
     migration harness for CPM version field).
-  - epic_CANVAS_INTERACTION (Publish tab placeholder).
-  - epic_PROPERTY_PANEL (Zod schemas reused by pre-flight).
-  - epic_CASE_VARIABLES_AND_SENTRIES (sentry expression
+  - epic_CANVAS_INTERACTION_03 (Publish tab placeholder).
+  - epic_PROPERTY_PANEL_05 (Zod schemas reused by pre-flight).
+  - epic_CASE_VARIABLES_AND_SENTRIES_06 (sentry expression
     reference-check).
-  - epic_DOMAIN_CONTEXT (domain context resolution for bundling).
-  - epic_TEST_MODE_AND_SIMULATOR (reads `lastRun.result`).
-  - epic_WIRE_MANAGEMENT (port-connected check).
+  - epic_DOMAIN_CONTEXT_07 (domain context resolution for bundling).
+  - epic_TEST_MODE_AND_SIMULATOR_10 (reads `lastRun.result`).
+  - epic_WIRE_MANAGEMENT_04 (port-connected check).
 - **Downstream:**
   - v0.2+ `RemoteBackend` plugs into the same
     `publishCasePlanModel` contract without UI changes.

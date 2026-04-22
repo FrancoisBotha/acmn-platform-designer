@@ -84,25 +84,25 @@ problems before they compound into sprint delays.
 - Interactive wire creation (drag from output port to input port). Wires
   appear only as hardcoded samples in this spike.
 - Property panel — selecting an element does nothing beyond the visual
-  selection highlight. Covered by epic_PROPERTY_PANEL.
-- Case variables editor. Covered by epic_CASE_VARIABLES_AND_SENTRIES.
+  selection highlight. Covered by epic_PROPERTY_PANEL_05.
+- Case variables editor. Covered by epic_CASE_VARIABLES_AND_SENTRIES_06.
 - Domain context editor and library beyond the static badge. Covered
-  by epic_DOMAIN_CONTEXT.
+  by epic_DOMAIN_CONTEXT_07.
 - Project persistence, auto-save, open/save dialogs. Canvas state is
   in-memory only; closing the app loses work. Covered by
-  epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE and
-  epic_AUTOSAVE_AND_RECOVERY.
+  epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE_01 and
+  epic_AUTOSAVE_AND_RECOVERY_02.
 - Undo/redo, multi-select marquee, copy/paste, canvas mode tabs.
-  Covered by epic_CANVAS_INTERACTION.
+  Covered by epic_CANVAS_INTERACTION_03.
 - Test mode and Publish mode. Covered by their dedicated epics.
 - `BackendContract` implementation (the stub interface file is
   included but nothing calls into it). Covered by
-  epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE.
+  epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE_01.
 - macOS and Linux builds (deferred to v0.2+).
 - Code-signed installer — unsigned `.exe` is acceptable here. Covered
-  by epic_WINDOWS_INSTALLER_AND_DISTRIBUTION.
+  by epic_WINDOWS_INSTALLER_AND_DISTRIBUTION_12.
 - Logging, settings dialog, native application menu, command palette.
-  Covered by epic_APP_CHROME_AND_SETTINGS.
+  Covered by epic_APP_CHROME_AND_SETTINGS_08.
 
 ---
 

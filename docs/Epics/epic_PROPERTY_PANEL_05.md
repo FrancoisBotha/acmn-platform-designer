@@ -94,35 +94,35 @@ redesign it.
     (reference / copy) with a "Change..." action that opens the
     library picker, browsable read-only summary views of
     vocabulary / schemas / rules / decision tables. Full editing
-    moves to epic_DOMAIN_CONTEXT.
-  - **Wire** — delegated to epic_WIRE_MANAGEMENT's
+    moves to epic_DOMAIN_CONTEXT_07.
+  - **Wire** — delegated to epic_WIRE_MANAGEMENT_04's
     `WireProperties.tsx` panel.
   - **Case plan model** — case name, version label, description,
     domain context binding, case variables button (opens editor
-    from epic_CASE_VARIABLES_AND_SENTRIES).
+    from epic_CASE_VARIABLES_AND_SENTRIES_06).
 - Real-time validation: every field is schema-validated via Zod as
   the user types. Invalid fields show an inline error with a one-
   sentence explanation.
 - Inline help tooltips for every field (NFR-045).
 - Debounced commit to `canvasStore` (500 ms after last keystroke) so
   undo/redo gets one entry per "edit", not per keystroke. Coalesces
-  with the command model from epic_CANVAS_INTERACTION.
+  with the command model from epic_CANVAS_INTERACTION_03.
 - Panel width adjustable by a drag handle. Width persists across
   sessions in user settings.
 
 ### Out of Scope
 
-- Case variables editor — lives in epic_CASE_VARIABLES_AND_SENTRIES
+- Case variables editor — lives in epic_CASE_VARIABLES_AND_SENTRIES_06
   and is launched from the CPM property panel.
-- Sentry expression editor — lives in epic_CASE_VARIABLES_AND_SENTRIES
+- Sentry expression editor — lives in epic_CASE_VARIABLES_AND_SENTRIES_06
   (with Monaco-based syntax highlighting + autocomplete) and is
   embedded here as a reusable component.
 - Full domain context editing (vocabulary / schemas / rules /
   decision tables). The property panel surfaces a read-only summary;
-  inline editing lives in epic_DOMAIN_CONTEXT.
+  inline editing lives in epic_DOMAIN_CONTEXT_07.
 - Real-time validation *rules* that span multiple elements (pre-
   flight validation). Those are in
-  epic_PUBLISH_MODE_AND_PACKAGING's pre-flight checks.
+  epic_PUBLISH_MODE_AND_PACKAGING_11's pre-flight checks.
 - Multi-element selection editing — with a multi-selection in the
   canvas, the panel shows a count and a "select a single element to
   edit" hint. Bulk property editing is not in v0.1.
@@ -182,7 +182,7 @@ redesign it.
 - **FR-058** — For the domain context panel, property panel displays
   domain name, version, binding mode, and browsable views of
   vocabulary, schemas, rules, and decision tables (read-only
-  summary here; editing in epic_DOMAIN_CONTEXT).
+  summary here; editing in epic_DOMAIN_CONTEXT_07).
 - **FR-059** — Validate all inputs in real time and show inline
   errors for invalid configurations.
 - **FR-060** — Support closing (collapsing) the property panel to
@@ -232,14 +232,14 @@ redesign it.
 
 - **No new disk schema.** This epic surfaces fields already declared
   in the CPM / element schemas established by
-  epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE and extended by
-  epic_WIRE_MANAGEMENT.
+  epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE_01 and extended by
+  epic_WIRE_MANAGEMENT_04.
 - **Zod schemas.** One Zod schema per element type in
   `src-renderer/lib/validation.ts`. These become the canonical shape
   for each element type and are re-used by preflight (epic 10) and
   import validation (epic 11).
 - **User setting.** `propertyPanelWidth` stored in the user settings
-  file (epic_APP_CHROME_AND_SETTINGS surfaces the settings dialog;
+  file (epic_APP_CHROME_AND_SETTINGS_08 surfaces the settings dialog;
   this epic just writes/reads the key).
 
 ---
@@ -258,7 +258,7 @@ redesign it.
   to keep initial bundle small.
 - **Command model.** Property edits push an `UpdateElementCommand`
   (with a 500 ms debounce) to the undo/redo stack from
-  epic_CANVAS_INTERACTION.
+  epic_CANVAS_INTERACTION_03.
 - **No IPC changes.**
 
 ---
@@ -322,18 +322,18 @@ redesign it.
 ## 11. Dependencies
 
 - **Upstream:**
-  - epic_SPIKE1_FOUNDATION (element rendering; selection model).
-  - epic_CANVAS_INTERACTION (command model for undoable edits).
-  - epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE (CPM data in place).
+  - epic_SPIKE1_FOUNDATION_00 (element rendering; selection model).
+  - epic_CANVAS_INTERACTION_03 (command model for undoable edits).
+  - epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE_01 (CPM data in place).
 - **Downstream:**
-  - epic_CASE_VARIABLES_AND_SENTRIES supplies the sentry expression
+  - epic_CASE_VARIABLES_AND_SENTRIES_06 supplies the sentry expression
     editor and the case variables editor (launched from here).
-  - epic_DOMAIN_CONTEXT upgrades the read-only summary views to
+  - epic_DOMAIN_CONTEXT_07 upgrades the read-only summary views to
     fully editable in copy mode.
-  - epic_WIRE_MANAGEMENT supplies the wire properties editor.
-  - epic_TEST_MODE_AND_SIMULATOR's state overlays read the same
+  - epic_WIRE_MANAGEMENT_04 supplies the wire properties editor.
+  - epic_TEST_MODE_AND_SIMULATOR_10's state overlays read the same
     element schemas this epic validates.
-  - epic_PUBLISH_MODE_AND_PACKAGING reuses the Zod schemas for
+  - epic_PUBLISH_MODE_AND_PACKAGING_11 reuses the Zod schemas for
     pre-flight.
 
 ---
@@ -370,7 +370,7 @@ redesign it.
 5. **PRP-05** — Stage, milestone, human task property panels.
 6. **PRP-06** — Domain context panel (read-only summary browse of
    vocabulary / schemas / rules / decision tables). Editing
-   deferred to epic_DOMAIN_CONTEXT.
+   deferred to epic_DOMAIN_CONTEXT_07.
 7. **PRP-07** — Real-time Zod validation with inline errors.
    50 ms latency budget measurement. Debounced commit (500 ms) to
    canvasStore as an `UpdateElementCommand`.

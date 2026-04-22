@@ -91,7 +91,7 @@ without guessing at application state.
   - **Logic Engine** (optional): base URL, auth token
     (encrypted at rest via OS keychain per NFR-035).
   - **Published Domain Contexts folder:** path (folder picker)
-    for the "Published" tier (epic_DOMAIN_CONTEXT).
+    for the "Published" tier (epic_DOMAIN_CONTEXT_07).
   - **Advanced:** log level (debug / info / warn / error), reset
     to defaults button.
 - **Keyboard shortcut reference modal.** Lists all registered
@@ -285,7 +285,7 @@ without guessing at application state.
 - [ ] Changing the theme applies instantly; System mode follows
   OS changes without restart.
 - [ ] Changing the auto-save interval propagates to the
-  auto-save loop from epic_AUTOSAVE_AND_RECOVERY.
+  auto-save loop from epic_AUTOSAVE_AND_RECOVERY_02.
 - [ ] Logic Engine credentials stored via OS keychain — the
   settings.json file contains only a keychain reference.
 - [ ] Log files appear under `%APPDATA%\ACMN Designer\logs\`
@@ -332,12 +332,12 @@ without guessing at application state.
 ## 11. Dependencies
 
 - **Upstream:**
-  - epic_SPIKE1_FOUNDATION (app shell).
-  - epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE (IPC plumbing
+  - epic_SPIKE1_FOUNDATION_00 (app shell).
+  - epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE_01 (IPC plumbing
     pattern, file I/O for settings).
-  - epic_AUTOSAVE_AND_RECOVERY (auto-save interval is driven
+  - epic_AUTOSAVE_AND_RECOVERY_02 (auto-save interval is driven
     from settings).
-  - epic_CANVAS_INTERACTION (Undo/Redo menu entries reflect
+  - epic_CANVAS_INTERACTION_03 (Undo/Redo menu entries reflect
     stack state).
 - **Downstream:** every other epic relies on the logger. Menu
   entries link to Import/Export, Publish, Test mode.

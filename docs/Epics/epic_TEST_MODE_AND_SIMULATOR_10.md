@@ -44,7 +44,7 @@ So that I have some repeatable confidence every time I ship.
 
 ### In Scope
 
-- **Test mode UI** — the Test tab from epic_CANVAS_INTERACTION is
+- **Test mode UI** — the Test tab from epic_CANVAS_INTERACTION_03 is
   wired to a full layout:
   - Left panel: active test scenario details (injected signal
     JSON, mocked responses), a case variables watcher showing live
@@ -67,7 +67,7 @@ So that I have some repeatable confidence every time I ship.
   - Stage lifecycle: available → active → complete (on entry /
     exit sentry).
   - Sentry evaluation (uses the expression grammar from
-    epic_CASE_VARIABLES_AND_SENTRIES).
+    epic_CASE_VARIABLES_AND_SENTRIES_06).
   - Milestone achievement (on criteria met).
   - Wire delivery with the configured buffering strategy.
   - Agent turns: either a real local Logic Engine call (if
@@ -113,7 +113,7 @@ So that I have some repeatable confidence every time I ship.
   signal + mocks and is ready to run.
 - **Test run result** recorded (timestamp, duration, result:
   passed / failed / incomplete) for later use by
-  epic_PUBLISH_MODE_AND_PACKAGING's pre-flight.
+  epic_PUBLISH_MODE_AND_PACKAGING_11's pre-flight.
 - **Event streaming from main to renderer** via `AsyncIterable` over
   IPC (chunked batches to keep the channel tidy).
 
@@ -208,7 +208,7 @@ So that I have some repeatable confidence every time I ship.
   canvas marks the offending element red, the console shows the
   error, and the run transitions to failed.
 - **Scenario persistence.** Scenarios appear in the project tree
-  sidebar (epic_CANVAS_INTERACTION), clicking opens in Test mode.
+  sidebar (epic_CANVAS_INTERACTION_03), clicking opens in Test mode.
 
 ---
 
@@ -267,7 +267,7 @@ So that I have some repeatable confidence every time I ship.
   `src-renderer/lib/expressionGrammar.ts`'s
   parse+validate (shared with the renderer). Evaluation is in the
   main process — the grammar module is consumed on both sides.
-- **Mode wiring.** Test-mode tab from epic_CANVAS_INTERACTION is
+- **Mode wiring.** Test-mode tab from epic_CANVAS_INTERACTION_03 is
   populated here.
 
 ---
@@ -335,19 +335,19 @@ So that I have some repeatable confidence every time I ship.
 ## 11. Dependencies
 
 - **Upstream:**
-  - epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE (baseline contract
+  - epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE_01 (baseline contract
     methods + `test-scenarios/` folder).
-  - epic_AUTOSAVE_AND_RECOVERY (atomic writes for scenarios).
-  - epic_CANVAS_INTERACTION (Test-mode tab placeholder).
-  - epic_PROPERTY_PANEL (already informs the user of node state).
-  - epic_CASE_VARIABLES_AND_SENTRIES (expression grammar for
+  - epic_AUTOSAVE_AND_RECOVERY_02 (atomic writes for scenarios).
+  - epic_CANVAS_INTERACTION_03 (Test-mode tab placeholder).
+  - epic_PROPERTY_PANEL_05 (already informs the user of node state).
+  - epic_CASE_VARIABLES_AND_SENTRIES_06 (expression grammar for
     sentry evaluation).
-  - epic_DOMAIN_CONTEXT (decision tables and rules consumed by
+  - epic_DOMAIN_CONTEXT_07 (decision tables and rules consumed by
     the simulator).
-  - epic_WIRE_MANAGEMENT (wire buffering strategies consumed by
+  - epic_WIRE_MANAGEMENT_04 (wire buffering strategies consumed by
     the simulator).
 - **Downstream:**
-  - epic_PUBLISH_MODE_AND_PACKAGING reads `lastRun.result` for
+  - epic_PUBLISH_MODE_AND_PACKAGING_11 reads `lastRun.result` for
     pre-flight.
 
 ---

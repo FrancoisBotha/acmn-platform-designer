@@ -11,7 +11,7 @@
 
 Let users move case plan models and domain contexts between
 projects, between workstations, or into tools outside the Designer.
-The published `.acmn` package (epic_PUBLISH_MODE_AND_PACKAGING) is
+The published `.acmn` package (epic_PUBLISH_MODE_AND_PACKAGING_11) is
 a release artefact; this epic is about the everyday "send me your
 draft" / "copy this domain context into another project" exchange.
 
@@ -57,7 +57,7 @@ registry exists.
   - Domain context binding: if the imported CPM references a
     domain context the current project has, keep the reference;
     otherwise warn the user and import with the reference dangling
-    (epic_DOMAIN_CONTEXT will surface it).
+    (epic_DOMAIN_CONTEXT_07 will surface it).
   - ACMN schema validation: refuses files from future schema
     versions; applies forward migration for older (via the
     existing harness).
@@ -93,7 +93,7 @@ registry exists.
   local by design; revisit if real need emerges.
 - Import / export of published `.acmn` packages — those are
   release artefacts (produced in
-  epic_PUBLISH_MODE_AND_PACKAGING) and are not a workflow for
+  epic_PUBLISH_MODE_AND_PACKAGING_11) and are not a workflow for
   day-to-day authoring.
 - Auto-merge when a conflicting CPM is imported. User chooses
   overwrite or rename.
@@ -133,7 +133,7 @@ registry exists.
 
 - **Menu location.** Under File → Export and File → Import, with
   submenu items "Case Plan Model..." and "Domain Context...".
-  Native menu lives in epic_APP_CHROME_AND_SETTINGS; this epic
+  Native menu lives in epic_APP_CHROME_AND_SETTINGS_08; this epic
   registers its entries.
 - **Export flow.**
   1. User clicks File → Export → Case Plan Model.
@@ -187,13 +187,13 @@ registry exists.
 - **IPC additions.** `cpm:export`, `cpm:import`,
   `domainContext:export`, `domainContext:import`.
 - **Native dialogs.** Reuses `src-main/ipc/dialog.ts` from
-  epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE. Filter on
+  epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE_01. Filter on
   `.cpm.json` and `.domain.json` extensions.
 - **Validation.** Reuses Zod schemas from
-  epic_PROPERTY_PANEL and epic_DOMAIN_CONTEXT. Migration reuses
-  the harness from epic_AUTOSAVE_AND_RECOVERY.
+  epic_PROPERTY_PANEL_05 and epic_DOMAIN_CONTEXT_07. Migration reuses
+  the harness from epic_AUTOSAVE_AND_RECOVERY_02.
 - **Menu wiring.** Native application menu entries registered in
-  epic_APP_CHROME_AND_SETTINGS call these IPC handlers.
+  epic_APP_CHROME_AND_SETTINGS_08 call these IPC handlers.
 - **No new dependencies.**
 
 ---
@@ -240,7 +240,7 @@ registry exists.
 - **OS-specific file-association.** Double-clicking a `.cpm.json`
   file in Windows Explorer launching the Designer is tempting
   but out of scope for v0.1 (would require installer work in
-  epic_WINDOWS_INSTALLER_AND_DISTRIBUTION).
+  epic_WINDOWS_INSTALLER_AND_DISTRIBUTION_12).
 - **Open question — should export inline the bound domain
   context for portability?** Proposed: no — keep export lean
   (binding reference only). Users who want a self-contained
@@ -251,14 +251,14 @@ registry exists.
 ## 11. Dependencies
 
 - **Upstream:**
-  - epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE (dialog helpers,
+  - epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE_01 (dialog helpers,
     LocalBackend).
-  - epic_AUTOSAVE_AND_RECOVERY (schema migration harness,
+  - epic_AUTOSAVE_AND_RECOVERY_02 (schema migration harness,
     atomic writes).
-  - epic_PROPERTY_PANEL (Zod schemas for CPM validation).
-  - epic_DOMAIN_CONTEXT (domain context Zod schema; file
+  - epic_PROPERTY_PANEL_05 (Zod schemas for CPM validation).
+  - epic_DOMAIN_CONTEXT_07 (domain context Zod schema; file
     handling).
-  - epic_APP_CHROME_AND_SETTINGS (native menu entries).
+  - epic_APP_CHROME_AND_SETTINGS_08 (native menu entries).
 - **Downstream:** none — this is terminal functionality.
 
 ---
@@ -287,7 +287,7 @@ registry exists.
    for `.domain.json`.
 3. **IEI-03** — Menu integration: File → Export / Import entries
    wired into the native menu from
-   epic_APP_CHROME_AND_SETTINGS. Success toasts + error
+   epic_APP_CHROME_AND_SETTINGS_08. Success toasts + error
    dialogs for all failure modes.
 
 **Scaffolding files touched:**

@@ -60,21 +60,21 @@ run.
   source/target port types (e.g., guardrail "fail" output → escalation
   wire). User can change the type from the property panel.
 - Wire selection with highlight and wire-property panel (right side,
-  integrating with epic_PROPERTY_PANEL).
+  integrating with epic_PROPERTY_PANEL_05).
 - Wire deletion via Delete key (on selected wire) or right-click
   context menu.
 - Auto-routing: wires route around other elements using React Flow's
   built-in smoothstep / step edges, with configurable offset; user
   can't manually edit the path in v0.1.
 - All wire operations are undoable via the command model introduced in
-  epic_CANVAS_INTERACTION.
+  epic_CANVAS_INTERACTION_03.
 - Wire persistence in the CPM JSON file (edge list with ids, source /
   target handle references, wire-type, and properties).
 - Wire properties on the right panel:
   - Type (dropdown, five options).
   - Buffering strategy (enum: immediate / batched / coalesced).
   - Transform (optional expression — opens the Monaco-based
-    expression editor already added in epic_CASE_VARIABLES_AND_SENTRIES).
+    expression editor already added in epic_CASE_VARIABLES_AND_SENTRIES_06).
   - Confidence gate threshold (for confidence-gated wires only).
 
 ### Out of Scope
@@ -167,9 +167,9 @@ run.
   - `confidenceThreshold` (optional number, only for
     `confidence_gated`)
 - **Schema version bump.** If CPM schema was at v1 after
-  epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE without edges, this
+  epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE_01 without edges, this
   epic bumps it to v2 adding the edges array. Migration harness from
-  epic_AUTOSAVE_AND_RECOVERY applies a no-op migration that inserts
+  epic_AUTOSAVE_AND_RECOVERY_02 applies a no-op migration that inserts
   an empty `edges: []` when missing.
 
 ---
@@ -184,9 +184,9 @@ run.
   without reading the node component.
 - **Command model.** New commands: `AddWireCommand`,
   `RemoveWireCommand`, `UpdateWireCommand`. Plugged into the
-  undo/redo system from epic_CANVAS_INTERACTION.
+  undo/redo system from epic_CANVAS_INTERACTION_03.
 - **Property panel.** New `WireProperties.tsx` panel, wired into the
-  router in epic_PROPERTY_PANEL.
+  router in epic_PROPERTY_PANEL_05.
 - **LocalBackend save / load.** CPM file reader and writer handle
   the new edges section. No new IPC channels.
 
@@ -246,16 +246,16 @@ run.
 ## 11. Dependencies
 
 - **Upstream:**
-  - epic_SPIKE1_FOUNDATION (nodes with `<Handle>` ports, wire
+  - epic_SPIKE1_FOUNDATION_00 (nodes with `<Handle>` ports, wire
     visual samples).
-  - epic_CANVAS_INTERACTION (command model for undo/redo, multi-
+  - epic_CANVAS_INTERACTION_03 (command model for undo/redo, multi-
     select including wires).
-  - epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE (CPM file read/write).
+  - epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE_01 (CPM file read/write).
 - **Downstream:**
-  - epic_PROPERTY_PANEL hosts the `WireProperties.tsx` panel.
-  - epic_CASE_VARIABLES_AND_SENTRIES provides the expression editor
+  - epic_PROPERTY_PANEL_05 hosts the `WireProperties.tsx` panel.
+  - epic_CASE_VARIABLES_AND_SENTRIES_06 provides the expression editor
     used for the wire's `transform` field.
-  - epic_TEST_MODE_AND_SIMULATOR relies on wires to route signals
+  - epic_TEST_MODE_AND_SIMULATOR_10 relies on wires to route signals
     through the simulator; wire type and buffering strategy are
     consumed here.
 
@@ -313,12 +313,12 @@ run.
   `edgeTypes`, enable `onConnect`, wire `isValidConnection`.
 - `src-renderer/state/canvasStore.ts` — new wire commands.
 - `src-renderer/features/propertyPanel/WireProperties.tsx` — new
-  (registered in epic_PROPERTY_PANEL's router).
+  (registered in epic_PROPERTY_PANEL_05's router).
 - `src-main/storage/migrations.ts` — register v1 → v2 CPM
   migration.
 
 **Chain constraint:** WIR-01 must land before WIR-02 (compatibility
 check needs port metadata). WIR-06 must not merge before
-epic_AUTOSAVE_AND_RECOVERY's migration harness is available.
+epic_AUTOSAVE_AND_RECOVERY_02's migration harness is available.
 
 **Estimated total effort:** 3–4 days.

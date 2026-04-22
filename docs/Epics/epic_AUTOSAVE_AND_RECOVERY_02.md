@@ -16,7 +16,7 @@ application recovers gracefully from unexpected exit, corrupted files,
 or project files from older schema versions.
 
 This epic layers durability onto the project lifecycle delivered in
-epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE. The `saveProject()` call
+epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE_01. The `saveProject()` call
 becomes atomic, an auto-save loop debounces disk writes every 30
 seconds, three rolling backups per project enable recovery from a bad
 write, and a schema-version migration harness enables the Designer to
@@ -142,7 +142,7 @@ evolve the schema.
   each successful auto-save (optional, subtle — spike into UX during
   implementation and defer if noisy).
 - **Modified marker.** Already added in
-  epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE; this epic keeps it in
+  epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE_01; this epic keeps it in
   sync with the auto-save loop (clears after each successful save).
 - **Recovery dialog on startup** (when stranded `*.tmp` detected):
   headline "Unsaved changes detected from last session" with three
@@ -159,7 +159,7 @@ evolve the schema.
 - **Migration applied toast**: "Project migrated from format v1 to
   v2. A backup was saved to `project.acmn.json.backup`."
 - **No spinner** for auto-save — it must not interrupt the user. If
-  auto-save takes longer than 500 ms, epic_APP_CHROME_AND_SETTINGS's
+  auto-save takes longer than 500 ms, epic_APP_CHROME_AND_SETTINGS_08's
   background-activity indicator is surfaced.
 
 ---
@@ -256,7 +256,7 @@ evolve the schema.
 
 ## 11. Dependencies
 
-- **Upstream:** epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE (defines
+- **Upstream:** epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE_01 (defines
   the `BackendContract` interface and the baseline save flow this
   epic hardens).
 - **Downstream:** every later epic that reads/writes project files

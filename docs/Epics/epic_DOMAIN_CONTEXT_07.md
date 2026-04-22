@@ -89,7 +89,7 @@ model that binds to it.
   - *Schema editor* — JSON schema editor (Monaco JSON language)
     with "Add entity schema" / "Add value object schema" actions.
   - *Rule editor* — Monaco-based (with the ACMN expression grammar
-    from epic_CASE_VARIABLES_AND_SENTRIES or a rule-specific DSL
+    from epic_CASE_VARIABLES_AND_SENTRIES_06 or a rule-specific DSL
     — pick in ticket).
   - *Decision table editor* — table UI with input columns, output
     columns, and rule rows. Add/remove/reorder columns and rows.
@@ -108,10 +108,10 @@ model that binds to it.
 - Versioning of personal contexts — only a single "current" version
   is tracked in v0.1.
 - Decision table execution (runtime). Simulator supports simple
-  table evaluation (via epic_TEST_MODE_AND_SIMULATOR), but rich
+  table evaluation (via epic_TEST_MODE_AND_SIMULATOR_10), but rich
   execution semantics are the Execution Engine's job.
 - Import/export of individual domain contexts as standalone files.
-  Covered by epic_IMPORT_EXPORT_INTERCHANGE.
+  Covered by epic_IMPORT_EXPORT_INTERCHANGE_09.
 
 ---
 
@@ -225,7 +225,7 @@ model that binds to it.
   ```
 - **CPM schema** — already declares `domainContextBinding:
   { id, version, mode: "reference" | "copy" }` as established by
-  epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE. This epic makes it
+  epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE_01. This epic makes it
   live.
 - **Personal library location** — OS-standard user data directory,
   e.g. `%APPDATA%\ACMN Designer\domain-contexts-personal\`.
@@ -249,10 +249,10 @@ model that binds to it.
   library cache and the currently-opened context in the detail
   view.
 - **Property panel.** Upgrade the read-only domain-context panel
-  from epic_PROPERTY_PANEL: in copy mode, editors become writable;
+  from epic_PROPERTY_PANEL_05: in copy mode, editors become writable;
   in reference mode, they remain read-only with a banner.
 - **Project tree sidebar.** The "Domain Contexts" section (already
-  present from epic_CANVAS_INTERACTION) now has click handlers that
+  present from epic_CANVAS_INTERACTION_03) now has click handlers that
   open the detail view.
 - **Monaco JSON language.** Already imported for schemas — reused
   here for entity + value object schema editing.
@@ -278,7 +278,7 @@ model that binds to it.
 - [ ] Replacing a bound context shows a warning and, on confirm,
   updates the binding. Sentry expressions that now reference
   missing vocabulary surface errors via
-  epic_CASE_VARIABLES_AND_SENTRIES's validator.
+  epic_CASE_VARIABLES_AND_SENTRIES_06's validator.
 - [ ] "Fork to Personal" on a non-personal context creates a
   personal copy with `origin.sourceId` / `origin.sourceVersion` /
   `origin.forkedAt` populated, and opens the copy in the editor.
@@ -297,7 +297,7 @@ model that binds to it.
 
 - **Rule DSL vs expression grammar.** Rules may need a richer DSL
   than sentries. Options: (a) reuse the ACMN expression grammar
-  from epic_CASE_VARIABLES_AND_SENTRIES (simpler); (b) introduce a
+  from epic_CASE_VARIABLES_AND_SENTRIES_06 (simpler); (b) introduce a
   domain-specific rule DSL (richer but more work). Recommendation
   for v0.1: reuse the expression grammar and document the
   limitations.
@@ -320,23 +320,23 @@ model that binds to it.
 ## 11. Dependencies
 
 - **Upstream:**
-  - epic_SPIKE1_FOUNDATION (static domain badge — replaced here).
-  - epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE (domain-contexts
+  - epic_SPIKE1_FOUNDATION_00 (static domain badge — replaced here).
+  - epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE_01 (domain-contexts
     folder structure; baseline contract stubs).
-  - epic_AUTOSAVE_AND_RECOVERY (atomic writes + migration harness
+  - epic_AUTOSAVE_AND_RECOVERY_02 (atomic writes + migration harness
     for `.domain.json`).
-  - epic_CANVAS_INTERACTION (sidebar entries; command model for
+  - epic_CANVAS_INTERACTION_03 (sidebar entries; command model for
     undoable context edits).
-  - epic_PROPERTY_PANEL (domain context panel scaffolding).
-  - epic_CASE_VARIABLES_AND_SENTRIES (expression grammar reused in
+  - epic_PROPERTY_PANEL_05 (domain context panel scaffolding).
+  - epic_CASE_VARIABLES_AND_SENTRIES_06 (expression grammar reused in
     rules).
 - **Downstream:**
-  - epic_TEST_MODE_AND_SIMULATOR loads domain context at run-time
+  - epic_TEST_MODE_AND_SIMULATOR_10 loads domain context at run-time
     and exposes vocabulary + decision tables to the simulator.
-  - epic_PUBLISH_MODE_AND_PACKAGING bundles the bound context into
+  - epic_PUBLISH_MODE_AND_PACKAGING_11 bundles the bound context into
     the `.acmn` package (for copy and reference modes, the
     resolved context is included).
-  - epic_IMPORT_EXPORT_INTERCHANGE imports / exports single
+  - epic_IMPORT_EXPORT_INTERCHANGE_09 imports / exports single
     `.domain.json` files.
 
 ---

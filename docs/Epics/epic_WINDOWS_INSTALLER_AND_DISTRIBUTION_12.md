@@ -87,7 +87,7 @@ confidently and diff between versions.
 - **Third-party attributions.** Generate a `THIRD_PARTY_LICENSES.md`
   or similar during build, shipped with the installer and
   accessible from the About dialog (link added by
-  epic_APP_CHROME_AND_SETTINGS).
+  epic_APP_CHROME_AND_SETTINGS_08).
 - **Build pipeline.**
   - Local: `pnpm build` produces a signed `.exe` when signing
     env vars are present, unsigned otherwise.
@@ -163,7 +163,7 @@ platform concern rather than a feature.
 - **Uninstaller.** Standard Windows "Apps & features" entry. Runs
   silently by default; offers the "remove my settings" option
   when launched interactively.
-- **About dialog** (link from epic_APP_CHROME_AND_SETTINGS) shows
+- **About dialog** (link from epic_APP_CHROME_AND_SETTINGS_08) shows
   the third-party attributions list.
 
 ---
@@ -253,7 +253,7 @@ platform concern rather than a feature.
   reference workstation. Slower machines may exceed. Document
   the measurement conditions.
 - **`keytar` native module.** `keytar` (used by
-  epic_APP_CHROME_AND_SETTINGS for credential storage) is a
+  epic_APP_CHROME_AND_SETTINGS_08 for credential storage) is a
   native Node module — must be rebuilt for Electron's Node
   version as part of the build. Confirm the electron-builder
   config handles this.

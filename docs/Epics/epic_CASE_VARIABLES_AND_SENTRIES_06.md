@@ -58,7 +58,7 @@ variable names or expression syntax.
     `date`, enum values textarea for `enum`, currency symbol picker
     for `currency`).
   - All edits funnel through the command model from
-    epic_CANVAS_INTERACTION for undoable operations.
+    epic_CANVAS_INTERACTION_03 for undoable operations.
 - **Sentry expression editor** (reusable component, not a standalone
   screen).
   - Monaco-backed single-line and multi-line modes.
@@ -75,12 +75,12 @@ variable names or expression syntax.
     variables.
   - Embedded in the property panel wherever a sentry expression is
     required:
-    - Stage entry/exit sentries (epic_PROPERTY_PANEL).
-    - Plan item entry/exit sentries (epic_PROPERTY_PANEL).
-    - Milestone criteria (epic_PROPERTY_PANEL).
+    - Stage entry/exit sentries (epic_PROPERTY_PANEL_05).
+    - Plan item entry/exit sentries (epic_PROPERTY_PANEL_05).
+    - Milestone criteria (epic_PROPERTY_PANEL_05).
     - Milestone revocation condition.
     - Human task conditional visibility rules.
-    - Wire transform expressions (epic_WIRE_MANAGEMENT).
+    - Wire transform expressions (epic_WIRE_MANAGEMENT_04).
 - **Variable references surface** in the human task property panel.
   When a human task is selected, its property panel exposes a "Form
   fields" section listing case variables that can be bound to form
@@ -93,7 +93,7 @@ variable names or expression syntax.
 ### Out of Scope
 
 - Evaluating expressions at runtime. Evaluation happens in the test
-  simulator (epic_TEST_MODE_AND_SIMULATOR) and the future Execution
+  simulator (epic_TEST_MODE_AND_SIMULATOR_10) and the future Execution
   Engine. This epic delivers the grammar definition and the editor;
   evaluation is elsewhere.
 - Complex form-builder UI for human tasks (layout, conditional
@@ -196,11 +196,11 @@ variable names or expression syntax.
   ]
   ```
 - **CPM schema version bump** if needed (migration via
-  epic_AUTOSAVE_AND_RECOVERY's harness).
+  epic_AUTOSAVE_AND_RECOVERY_02's harness).
 - **No new files.** Everything lives in the existing `.cpm.json`.
 - **Expression grammar** is code, not data, but is versioned with
   the application and surfaced to the user via documentation in
-  epic_APP_CHROME_AND_SETTINGS's help menu.
+  epic_APP_CHROME_AND_SETTINGS_08's help menu.
 
 ---
 
@@ -286,20 +286,20 @@ variable names or expression syntax.
 ## 11. Dependencies
 
 - **Upstream:**
-  - epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE (CPM file on disk).
-  - epic_CANVAS_INTERACTION (command model for undoable variable
+  - epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE_01 (CPM file on disk).
+  - epic_CANVAS_INTERACTION_03 (command model for undoable variable
     edits).
-  - epic_PROPERTY_PANEL (right panel in which sentry editor is
+  - epic_PROPERTY_PANEL_05 (right panel in which sentry editor is
     embedded; CPM property panel hosts the "Case variables"
     button).
 - **Downstream:**
-  - epic_WIRE_MANAGEMENT embeds the sentry expression editor for
+  - epic_WIRE_MANAGEMENT_04 embeds the sentry expression editor for
     the wire `transform` field.
-  - epic_DOMAIN_CONTEXT rules may reuse the grammar (TBD — rules
+  - epic_DOMAIN_CONTEXT_07 rules may reuse the grammar (TBD — rules
     may have their own DSL).
-  - epic_TEST_MODE_AND_SIMULATOR evaluates expressions at runtime
+  - epic_TEST_MODE_AND_SIMULATOR_10 evaluates expressions at runtime
     in the simulator.
-  - epic_PUBLISH_MODE_AND_PACKAGING's pre-flight validates all
+  - epic_PUBLISH_MODE_AND_PACKAGING_11's pre-flight validates all
     sentry expressions reference existing variables.
 
 ---
@@ -325,7 +325,7 @@ variable names or expression syntax.
 
 1. **CVS-01** — CPM schema extension: `variables[]` array with Zod
    validation. Migration from prior version (via
-   epic_AUTOSAVE_AND_RECOVERY's harness).
+   epic_AUTOSAVE_AND_RECOVERY_02's harness).
 2. **CVS-02** — Variables editor modal: table UI, 8 type inputs,
    uniqueness validation, delete-with-reference-warning, undoable
    commands.
@@ -349,10 +349,10 @@ variable names or expression syntax.
 - `src-renderer/features/propertyPanel/SentryExpressionEditor.tsx` —
   new (consumed by multiple other editors).
 - `src-renderer/features/propertyPanel/HumanTaskProperties.tsx` —
-  form fields section added (file owned by epic_PROPERTY_PANEL).
+  form fields section added (file owned by epic_PROPERTY_PANEL_05).
 - `src-renderer/features/propertyPanel/CasePlanModelProperties.tsx` —
   "Case variables" button added (file owned by
-  epic_PROPERTY_PANEL).
+  epic_PROPERTY_PANEL_05).
 - `src-main/storage/migrations.ts` — variables migration entry.
 
 **Chain constraint:** CVS-01 first (schema). CVS-02 and CVS-03 can

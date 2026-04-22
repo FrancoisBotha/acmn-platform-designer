@@ -39,14 +39,16 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
-  session.defaultSession.webRequest.onHeadersReceived((_details, callback) => {
-    callback({
-      responseHeaders: {
-        ..._details.responseHeaders,
-        'Content-Security-Policy': ["default-src 'self'"],
-      },
+  if (!process.env.VITE_DEV_SERVER_URL) {
+    session.defaultSession.webRequest.onHeadersReceived((_details, callback) => {
+      callback({
+        responseHeaders: {
+          ..._details.responseHeaders,
+          'Content-Security-Policy': ["default-src 'self'"],
+        },
+      })
     })
-  })
+  }
 
   backend = createBackend()
   registerProjectHandlers(backend)

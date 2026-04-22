@@ -1,9 +1,9 @@
 # Epic: CANVAS_INTERACTION
 
-**Status:** NEW
+**Status:** TICKETS
 **Owner:** human
 **Created:** 2026-04-21
-**Last Updated:** 2026-04-21
+**Last Updated:** 2026-04-22
 
 ---
 
@@ -67,9 +67,9 @@ files.
   - Case plan models in the project (names) with the active one
     highlighted.
   - Domain contexts (names; click opens the domain context detail
-    view — which is built in epic_DOMAIN_CONTEXT).
+    view — which is built in epic_DOMAIN_CONTEXT_07).
   - Test scenarios (names; click opens Test mode — which is built in
-    epic_TEST_MODE_AND_SIMULATOR).
+    epic_TEST_MODE_AND_SIMULATOR_10).
   - New-CPM button at the bottom.
 - Clipboard persists across CPM switches within a single session.
   Clipboard is cleared on project close.
@@ -81,13 +81,13 @@ files.
 - Cross-project copy/paste — deferred until later when needed.
 - Reordering CPMs in the project tree via drag. Deferred.
 - Renaming a CPM from the sidebar (covered by property panel on the
-  CPM node, epic_PROPERTY_PANEL).
+  CPM node, epic_PROPERTY_PANEL_05).
 - Canvas annotations, comments, or sticky notes.
 - Collaborative selection, cursors, or presence indicators
   (v0.3+ only).
 - Test-mode and Publish-mode tab contents — this epic only wires the
-  tab UI. Contents are delivered by epic_TEST_MODE_AND_SIMULATOR and
-  epic_PUBLISH_MODE_AND_PACKAGING.
+  tab UI. Contents are delivered by epic_TEST_MODE_AND_SIMULATOR_10 and
+  epic_PUBLISH_MODE_AND_PACKAGING_11.
 
 ---
 
@@ -137,9 +137,9 @@ files.
   - *Case Plan Models* — list with selection highlight; click to
     switch active CPM; "+ New" button at the bottom of the section.
   - *Domain Contexts* — list; click opens detail view
-    (epic_DOMAIN_CONTEXT).
+    (epic_DOMAIN_CONTEXT_07).
   - *Test Scenarios* — list; click opens in Test mode
-    (epic_TEST_MODE_AND_SIMULATOR).
+    (epic_TEST_MODE_AND_SIMULATOR_10).
 - **Undo/redo affordance.** Edit menu entries "Undo" and "Redo" plus
   small chevron buttons in the top bar near the breadcrumb. Disabled
   state when stacks are empty.
@@ -154,7 +154,7 @@ files.
   same clipboard offset by 16px to avoid exact overlap.
 - **Cross-CPM paste.** If the source CPM references a case variable
   that does not exist in the destination, show a non-blocking warning
-  (epic_CASE_VARIABLES_AND_SENTRIES's validator surfaces details
+  (epic_CASE_VARIABLES_AND_SENTRIES_06's validator surfaces details
   later).
 - **Switch-CPM with dirty selection.** Clears selection on switch;
   clipboard is preserved.
@@ -234,7 +234,7 @@ files.
   NOT generate a new undo entry — this would exhaust the stack
   immediately. Plan: property edits are coalesced within a 500 ms
   debounce window before pushing a command. Detail settles in
-  epic_PROPERTY_PANEL; this epic's interface must support it.
+  epic_PROPERTY_PANEL_05; this epic's interface must support it.
 - **Stage containment and undo.** Moving an element into/out of a
   stage changes `parentNode` — the command needs to capture both
   position and parent to undo cleanly.
@@ -252,16 +252,16 @@ files.
 
 ## 11. Dependencies
 
-- **Upstream:** epic_SPIKE1_FOUNDATION (canvas, node rendering,
-  basic selection), epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE
+- **Upstream:** epic_SPIKE1_FOUNDATION_00 (canvas, node rendering,
+  basic selection), epic_BACKEND_CONTRACT_AND_PROJECT_LIFECYCLE_01
   (multi-CPM project model).
 - **Downstream:**
-  - epic_PROPERTY_PANEL integrates with the command model for
+  - epic_PROPERTY_PANEL_05 integrates with the command model for
     undo-able property edits.
-  - epic_WIRE_MANAGEMENT integrates with the command model for
+  - epic_WIRE_MANAGEMENT_04 integrates with the command model for
     undo-able wire operations.
-  - epic_TEST_MODE_AND_SIMULATOR and
-    epic_PUBLISH_MODE_AND_PACKAGING wire content into the tabs
+  - epic_TEST_MODE_AND_SIMULATOR_10 and
+    epic_PUBLISH_MODE_AND_PACKAGING_11 wire content into the tabs
     placeholders introduced here.
 
 ---

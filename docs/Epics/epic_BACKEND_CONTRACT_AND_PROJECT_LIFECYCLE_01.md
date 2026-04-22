@@ -86,22 +86,22 @@ UI code.
 - Multi-case-plan-model support: a project can contain multiple
   `*.cpm.json` files, listed in the project manifest. The Designer
   opens the first CPM by default; switching between CPMs is covered
-  by epic_CANVAS_INTERACTION.
+  by epic_CANVAS_INTERACTION_03.
 
 ### Out of Scope
 
 - Auto-save, atomic writes, rolling backups, crash recovery, corrupt
   file handling, and schema migrations. Covered by
-  epic_AUTOSAVE_AND_RECOVERY.
+  epic_AUTOSAVE_AND_RECOVERY_02.
 - Project-tree sidebar for switching between case plan models.
-  Covered by epic_CANVAS_INTERACTION.
+  Covered by epic_CANVAS_INTERACTION_03.
 - Publish output (`.acmn` packaging to `dist/`). Covered by
-  epic_PUBLISH_MODE_AND_PACKAGING.
+  epic_PUBLISH_MODE_AND_PACKAGING_11.
 - Domain context files, test scenario files — this epic creates their
-  folders but the CRUD is delivered in epic_DOMAIN_CONTEXT and
-  epic_TEST_MODE_AND_SIMULATOR.
+  folders but the CRUD is delivered in epic_DOMAIN_CONTEXT_07 and
+  epic_TEST_MODE_AND_SIMULATOR_10.
 - Import/export of standalone CPM or domain-context JSON files.
-  Covered by epic_IMPORT_EXPORT_INTERCHANGE.
+  Covered by epic_IMPORT_EXPORT_INTERCHANGE_09.
 - Remote backend implementation (v0.2+).
 - Authentication against an identity provider (v0.2+).
 
@@ -110,7 +110,7 @@ UI code.
 ## 4. Functional Requirements
 
 - **FR-001** — Launch as a Windows desktop application (inherited from
-  epic_SPIKE1_FOUNDATION; enforced here as an acceptance condition
+  epic_SPIKE1_FOUNDATION_00; enforced here as an acceptance condition
   for the welcome screen to appear).
 - **FR-002** — Present a welcome screen on launch when no project is
   open, with "New project" and "Open project" actions.
@@ -127,7 +127,7 @@ UI code.
   model relative path in the top-bar breadcrumb.
 - **FR-008** — Support multiple case plan models per project
   (manifest-level support; UI for switching comes via
-  epic_CANVAS_INTERACTION).
+  epic_CANVAS_INTERACTION_03).
 - **FR-009** — Support closing a project, returning to the welcome
   screen, with a save prompt when unsaved changes exist.
 - **FR-018** — Provide a manual save action via Ctrl+S and File →
@@ -206,7 +206,7 @@ UI code.
 - **Title bar.** `ACMN Designer — <Project Name> · <cpm/path>`; append
   ` — modified` when dirty.
 - **Keyboard.** Ctrl+S for save; Ctrl+Shift+S for save-as; Ctrl+N for
-  new; Ctrl+O for open. (Registered in epic_APP_CHROME_AND_SETTINGS's
+  new; Ctrl+O for open. (Registered in epic_APP_CHROME_AND_SETTINGS_08's
   native menu; bindings used here.)
 - **Error states.** "Folder is not a valid ACMN project", "Project
   already exists at this location — overwrite?", "Could not write to
@@ -230,7 +230,7 @@ UI code.
   recent projects with path, name, last-modified timestamp.
 - **Schema version field.** Manifests include a `projectFormat`
   field (initially `"1"`) — infrastructure for
-  epic_AUTOSAVE_AND_RECOVERY's forward-migration story.
+  epic_AUTOSAVE_AND_RECOVERY_02's forward-migration story.
 
 ---
 
@@ -306,22 +306,22 @@ UI code.
   straightforward.
 - **Open question — manifest migration.** Schema version 1 is
   established here; the migration harness lands in
-  epic_AUTOSAVE_AND_RECOVERY. This epic must not introduce any
+  epic_AUTOSAVE_AND_RECOVERY_02. This epic must not introduce any
   dependencies on future schema fields.
 
 ---
 
 ## 11. Dependencies
 
-- **Upstream:** epic_SPIKE1_FOUNDATION (shell, canvas, palette,
+- **Upstream:** epic_SPIKE1_FOUNDATION_00 (shell, canvas, palette,
   element rendering, stub contract file).
 - **Downstream (consumers):**
-  - epic_AUTOSAVE_AND_RECOVERY extends save with atomic writes,
+  - epic_AUTOSAVE_AND_RECOVERY_02 extends save with atomic writes,
     backups, and migrations.
-  - epic_CANVAS_INTERACTION adds the project-tree sidebar for
+  - epic_CANVAS_INTERACTION_03 adds the project-tree sidebar for
     switching between multiple CPMs.
-  - epic_DOMAIN_CONTEXT, epic_TEST_MODE_AND_SIMULATOR,
-    epic_PUBLISH_MODE_AND_PACKAGING, epic_IMPORT_EXPORT_INTERCHANGE
+  - epic_DOMAIN_CONTEXT_07, epic_TEST_MODE_AND_SIMULATOR_10,
+    epic_PUBLISH_MODE_AND_PACKAGING_11, epic_IMPORT_EXPORT_INTERCHANGE_09
     all extend `LocalBackend` with their own methods.
 - **External:** Node.js `fs/promises` (bundled with Electron).
 
