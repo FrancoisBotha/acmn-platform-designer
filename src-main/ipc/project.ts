@@ -1,21 +1,77 @@
 import { ipcMain } from 'electron'
 import type { BackendContract, NewProjectParams, Project } from '../backend/contract'
+import { FutureVersionError, MigrationError, CorruptFileError } from '../storage/storageErrors'
+
+export interface SerializedStorageError {
+  name: string
+  message: string
+  filePath?: string
+  fileVersion?: string
+  appVersion?: string
+  fromVersion?: string
+  toVersion?: string
+  cause?: string
+}
+
+function toIpcError(err: unknown): Error | null {
+  let detail: SerializedStorageError | null = null
+
+  if (err instanceof FutureVersionError) {
+    detail = {
+      name: err.name,
+      message: err.message,
+      filePath: err.filePath,
+      fileVersion: err.fileVersion,
+      appVersion: err.appVersion,
+    }
+  } else if (err instanceof MigrationError) {
+    detail = {
+      name: err.name,
+      message: err.message,
+      filePath: err.filePath,
+      fromVersion: err.fromVersion,
+      toVersion: err.toVersion,
+      cause: err.cause instanceof Error ? err.cause.message : String(err.cause),
+    }
+  } else if (err instanceof CorruptFileError) {
+    detail = {
+      name: err.name,
+      message: err.message,
+      filePath: err.filePath,
+      cause: err.cause instanceof Error ? err.cause.message : String(err.cause),
+    }
+  }
+
+  if (!detail) return null
+
+  const ipcErr = new Error(JSON.stringify(detail))
+  ipcErr.name = detail.name
+  return ipcErr
+}
+
+async function wrapHandler<T>(fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn()
+  } catch (err) {
+    throw toIpcError(err) ?? err
+  }
+}
 
 export function registerProjectHandlers(backend: BackendContract): void {
   ipcMain.handle('project:new', (_event, params: NewProjectParams) => {
-    return backend.newProject(params)
+    return wrapHandler(() => backend.newProject(params))
   })
 
   ipcMain.handle('project:open', (_event, projectPath: string) => {
-    return backend.openProject(projectPath)
+    return wrapHandler(() => backend.openProject(projectPath))
   })
 
   ipcMain.handle('project:save', (_event, project: Project) => {
-    return backend.saveProject(project)
+    return wrapHandler(() => backend.saveProject(project))
   })
 
   ipcMain.handle('project:saveAs', (_event, project: Project, newPath: string) => {
-    return backend.saveProjectAs(project, newPath)
+    return wrapHandler(() => backend.saveProjectAs(project, newPath))
   })
 
   ipcMain.handle('project:close', () => {

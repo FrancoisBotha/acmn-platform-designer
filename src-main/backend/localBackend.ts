@@ -3,6 +3,9 @@ import path from 'path'
 import { app } from 'electron'
 import { randomUUID } from 'crypto'
 import { writeAtomic } from '../storage/atomicWrite'
+import { migrate } from '../storage/migrations'
+import type { FileKind } from '../storage/migrations'
+import { FutureVersionError, MigrationError, CorruptFileError } from '../storage/storageErrors'
 import type {
   BackendContract,
   Credentials,
@@ -27,6 +30,9 @@ import type {
 const MANIFEST_FILENAME = 'project.acmn.json'
 const RECENT_FILENAME = 'recent.json'
 const MAX_RECENT = 10
+
+export const CURRENT_PROJECT_FORMAT = '1'
+export const CURRENT_SCHEMA_VERSION = '1'
 
 const PROJECT_SUBDIRS = [
   'case-plan-models',
@@ -123,6 +129,61 @@ function projectToManifest(project: Project): ProjectManifest {
   }
 }
 
+function compareVersions(a: string, b: string): number {
+  const numA = parseInt(a, 10)
+  const numB = parseInt(b, 10)
+  return numA - numB
+}
+
+export async function loadFileWithVersionCheck(
+  filePath: string,
+  fileKind: FileKind,
+  currentVersion: string
+): Promise<Record<string, unknown>> {
+  let raw: string
+  try {
+    raw = await fs.readFile(filePath, 'utf-8')
+  } catch (cause) {
+    throw new CorruptFileError(filePath, cause)
+  }
+
+  let parsed: Record<string, unknown>
+  try {
+    parsed = JSON.parse(raw)
+  } catch (cause) {
+    throw new CorruptFileError(filePath, cause)
+  }
+
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    throw new CorruptFileError(filePath, new Error('Expected a JSON object'))
+  }
+
+  const fileVersion = String(parsed.schemaVersion ?? '')
+  if (!fileVersion) {
+    throw new CorruptFileError(filePath, new Error('Missing schemaVersion field'))
+  }
+
+  if (compareVersions(fileVersion, currentVersion) > 0) {
+    throw new FutureVersionError(filePath, fileVersion, currentVersion)
+  }
+
+  if (compareVersions(fileVersion, currentVersion) < 0) {
+    let migrated: { toVersion: string; payload: Record<string, unknown> }
+    try {
+      migrated = migrate(fileKind, fileVersion, currentVersion, parsed)
+    } catch (cause) {
+      throw new MigrationError(filePath, fileVersion, currentVersion, cause)
+    }
+    await fs.copyFile(filePath, filePath + '.backup')
+    const result = migrated.payload
+    result.schemaVersion = migrated.toVersion
+    await writeAtomic(filePath, JSON.stringify(result, null, 2))
+    return result
+  }
+
+  return parsed
+}
+
 export class LocalBackend implements BackendContract {
   // ==== Authentication (no-op in v0.1) ====
 
@@ -192,7 +253,42 @@ export class LocalBackend implements BackendContract {
     }
 
     const raw = await fs.readFile(manifestPath, 'utf-8')
-    const manifest: ProjectManifest = JSON.parse(raw)
+
+    let parsed: Record<string, unknown>
+    try {
+      parsed = JSON.parse(raw)
+    } catch (cause) {
+      throw new CorruptFileError(manifestPath, cause)
+    }
+
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+      throw new CorruptFileError(manifestPath, new Error('Expected a JSON object'))
+    }
+
+    const fileVersion = String(parsed.projectFormat ?? '')
+    if (!fileVersion) {
+      throw new CorruptFileError(manifestPath, new Error('Missing projectFormat field'))
+    }
+
+    if (compareVersions(fileVersion, CURRENT_PROJECT_FORMAT) > 0) {
+      throw new FutureVersionError(manifestPath, fileVersion, CURRENT_PROJECT_FORMAT)
+    }
+
+    let manifest: ProjectManifest
+    if (compareVersions(fileVersion, CURRENT_PROJECT_FORMAT) < 0) {
+      let migrated: { toVersion: string; payload: Record<string, unknown> }
+      try {
+        migrated = migrate('project', fileVersion, CURRENT_PROJECT_FORMAT, parsed)
+      } catch (cause) {
+        throw new MigrationError(manifestPath, fileVersion, CURRENT_PROJECT_FORMAT, cause)
+      }
+      await fs.copyFile(manifestPath, manifestPath + '.backup')
+      manifest = migrated.payload as unknown as ProjectManifest
+      manifest.projectFormat = migrated.toVersion
+      await writeAtomic(manifestPath, JSON.stringify(manifest, null, 2))
+    } else {
+      manifest = parsed as unknown as ProjectManifest
+    }
 
     const project = manifestToProject(manifest, projectPath)
 
