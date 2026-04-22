@@ -1,8 +1,12 @@
-import { useCallback } from 'react'
 import type { Node } from '@xyflow/react'
-import { useCanvasStore } from '@/state/canvasStore'
-import { UpdateElementPropertiesCommand } from '@/state/commands'
-import { FieldLabel } from './HelpTooltip'
+import { FormProvider } from 'react-hook-form'
+import { milestoneSchema } from '@/lib/validation'
+import { useValidatedPropertyForm } from '@/hooks/useValidatedPropertyForm'
+import {
+  ValidatedTextInput,
+  ValidatedSelectInput,
+  ValidatedTextarea,
+} from './ValidatedFields'
 
 const criteriaTypeOptions = [
   { value: 'expression', label: 'Expression' },
@@ -11,64 +15,36 @@ const criteriaTypeOptions = [
 ] as const
 
 export function MilestoneProperties({ node }: { node: Node }) {
-  const pushCommand = useCanvasStore((s) => s.pushCommand)
-
-  const data = node.data as Record<string, unknown>
-  const milestoneName = (data.label as string) ?? ''
-  const criteriaType = (data.criteriaType as string) ?? 'expression'
-  const criteriaExpression = (data.criteriaExpression as string) ?? ''
-  const revocationCondition = (data.revocationCondition as string) ?? ''
-
-  const updateProp = useCallback(
-    (props: Record<string, unknown>) => {
-      pushCommand(new UpdateElementPropertiesCommand(node.id, props, {}))
-    },
-    [node.id, pushCommand],
-  )
+  const { form } = useValidatedPropertyForm(milestoneSchema, node.id)
 
   return (
-    <div className="space-y-4">
-      <div>
-        <FieldLabel label="Milestone Name" tooltip="Display name for this milestone in the case plan" />
-        <input
-          className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
-          value={milestoneName}
-          onChange={(e) => updateProp({ label: e.target.value })}
+    <FormProvider {...form}>
+      <div className="space-y-4">
+        <ValidatedTextInput name="label" label="Milestone Name" tooltip="Display name for this milestone in the case plan" />
+
+        <ValidatedSelectInput
+          name="criteriaType"
+          label="Criteria Type"
+          tooltip="How this milestone's completion is determined (expression, manual, or event)"
+          options={criteriaTypeOptions}
         />
-      </div>
 
-      <div>
-        <FieldLabel label="Criteria Type" tooltip="How this milestone's completion is determined (expression, manual, or event)" />
-        <select
-          className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
-          value={criteriaType}
-          onChange={(e) => updateProp({ criteriaType: e.target.value })}
-        >
-          {criteriaTypeOptions.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <FieldLabel label="Criteria Expression" tooltip="The expression evaluated to determine whether this milestone is achieved" />
-        <textarea
-          className="w-full rounded border border-border bg-background px-2 py-1 text-sm resize-y min-h-[60px] font-mono"
-          value={criteriaExpression}
+        <ValidatedTextarea
+          name="criteriaExpression"
+          label="Criteria Expression"
+          tooltip="The expression evaluated to determine whether this milestone is achieved"
           placeholder="Expression (editor placeholder)"
-          onChange={(e) => updateProp({ criteriaExpression: e.target.value })}
+          className="font-mono"
         />
-      </div>
 
-      <div>
-        <FieldLabel label="Revocation Condition" tooltip="Expression that, when true, revokes this milestone's achieved status" />
-        <textarea
-          className="w-full rounded border border-border bg-background px-2 py-1 text-sm resize-y min-h-[60px] font-mono"
-          value={revocationCondition}
+        <ValidatedTextarea
+          name="revocationCondition"
+          label="Revocation Condition"
+          tooltip="Expression that, when true, revokes this milestone's achieved status"
           placeholder="Condition under which this milestone is revoked"
-          onChange={(e) => updateProp({ revocationCondition: e.target.value })}
+          className="font-mono"
         />
       </div>
-    </div>
+    </FormProvider>
   )
 }

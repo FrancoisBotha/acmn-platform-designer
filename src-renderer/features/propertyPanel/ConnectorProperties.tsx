@@ -1,8 +1,16 @@
 import { useCallback, useRef, useState } from 'react'
 import type { Node } from '@xyflow/react'
-import { useCanvasStore } from '@/state/canvasStore'
-import { UpdateElementPropertiesCommand } from '@/state/commands'
-import { FieldLabel } from './HelpTooltip'
+import { FormProvider, Controller } from 'react-hook-form'
+import { connectorSchema } from '@/lib/validation'
+import { useValidatedPropertyForm } from '@/hooks/useValidatedPropertyForm'
+import {
+  ValidatedTextInput,
+  ValidatedTextarea,
+  ValidatedNumberInput,
+  FieldLabel,
+  FieldError,
+} from './ValidatedFields'
+import { FieldLabel as HelpFieldLabel } from './HelpTooltip'
 
 const CONNECTOR_TYPES = [
   { value: 'email', label: 'Email' },
@@ -21,7 +29,7 @@ const inputClass = 'w-full rounded border border-border bg-background px-2 py-1 
 function FieldGroup({ label, tooltip, children }: { label: string; tooltip?: string; children: React.ReactNode }) {
   return (
     <div>
-      <FieldLabel label={label} tooltip={tooltip} />
+      <HelpFieldLabel label={label} tooltip={tooltip} />
       {children}
     </div>
   )
@@ -419,62 +427,41 @@ function hasSubFormData(config: Record<string, unknown>): boolean {
 }
 
 export function ConnectorProperties({ node }: { node: Node }) {
-  const pushCommand = useCanvasStore((s) => s.pushCommand)
-  const data = node.data as Record<string, unknown>
+  const { form } = useValidatedPropertyForm(connectorSchema, node.id)
 
-  const connectorType = (data.connectorSubType as ConnectorType) ?? 'email'
-  const connectionConfig = (data.connectionConfig as Record<string, unknown>) ?? {}
-  const filterRules = (data.filterRules as string) ?? ''
-  const fieldMapping = (data.fieldMapping as string) ?? ''
-  const targetCpm = (data.targetCpm as string) ?? ''
-  const dailySignalLimit = (data.dailySignalLimit as number) ?? 0
-  const active = (data.active as boolean) ?? true
+  const connectorType = (form.watch('connectorType') ?? 'email') as ConnectorType
+  const config = (form.watch('config') ?? {}) as Record<string, unknown>
 
   const [pendingType, setPendingType] = useState<ConnectorType | null>(null)
   const confirmDialogRef = useRef<HTMLDialogElement>(null)
 
-  const updateProp = useCallback(
-    (props: Record<string, unknown>) => {
-      const oldProps: Record<string, unknown> = {}
-      for (const key of Object.keys(props)) {
-        oldProps[key] = data[key]
-      }
-      pushCommand(new UpdateElementPropertiesCommand(node.id, props, oldProps))
-    },
-    [node.id, data, pushCommand],
-  )
-
-  const updateConnectionConfig = useCallback(
+  const updateConfig = useCallback(
     (patch: Record<string, unknown>) => {
-      const merged = { ...connectionConfig, ...patch }
-      updateProp({ connectionConfig: merged })
+      const current = form.getValues('config') as Record<string, unknown> ?? {}
+      form.setValue('config', { ...current, ...patch }, { shouldValidate: true, shouldDirty: true })
     },
-    [connectionConfig, updateProp],
+    [form],
   )
 
   const applyTypeSwitch = useCallback(
     (newType: ConnectorType) => {
-      const elementTypeId = `connector-${newType}`
-      updateProp({
-        connectorSubType: newType,
-        elementType: elementTypeId,
-        connectionConfig: {},
-      })
+      form.setValue('connectorType', newType, { shouldValidate: true, shouldDirty: true })
+      form.setValue('config', {}, { shouldValidate: true, shouldDirty: true })
     },
-    [updateProp],
+    [form],
   )
 
   const handleTypeChange = useCallback(
     (newType: ConnectorType) => {
       if (newType === connectorType) return
-      if (hasSubFormData(connectionConfig)) {
+      if (hasSubFormData(config)) {
         setPendingType(newType)
         confirmDialogRef.current?.showModal()
       } else {
         applyTypeSwitch(newType)
       }
     },
-    [connectorType, connectionConfig, applyTypeSwitch],
+    [connectorType, config, applyTypeSwitch],
   )
 
   const confirmTypeSwitch = useCallback(() => {
@@ -493,109 +480,116 @@ export function ConnectorProperties({ node }: { node: Node }) {
   const SubForm = SUB_FORM_MAP[connectorType]
 
   return (
-    <div className="space-y-4">
-      <FieldGroup label="Connector Type" tooltip="The integration channel this connector uses to receive or send signals">
-        <select
-          className={inputClass}
-          value={connectorType}
-          onChange={(e) => handleTypeChange(e.target.value as ConnectorType)}
-        >
-          {CONNECTOR_TYPES.map((t) => (
-            <option key={t.value} value={t.value}>{t.label}</option>
-          ))}
-        </select>
-      </FieldGroup>
-
-      <div className="border-t border-border pt-3">
-        <p className="text-xs font-medium text-muted-foreground mb-3">
-          Connection Configuration
-        </p>
-        <div className="space-y-3">
-          {SubForm && (
-            <SubForm config={connectionConfig} onChange={updateConnectionConfig} />
+    <FormProvider {...form}>
+      <div className="space-y-4">
+        <Controller
+          name="connectorType"
+          render={({ field, fieldState }) => (
+            <div>
+              <FieldLabel label="Connector Type" tooltip="The integration channel this connector uses to receive or send signals" />
+              <select
+                className={`${inputClass} ${fieldState.error ? 'border-red-500' : ''}`}
+                value={field.value ?? 'email'}
+                onChange={(e) => handleTypeChange(e.target.value as ConnectorType)}
+                onBlur={field.onBlur}
+              >
+                {CONNECTOR_TYPES.map((t) => (
+                  <option key={t.value} value={t.value}>{t.label}</option>
+                ))}
+              </select>
+              <FieldError message={fieldState.error?.message} />
+            </div>
           )}
-        </div>
-      </div>
+        />
 
-      <div className="border-t border-border pt-3">
-        <p className="text-xs font-medium text-muted-foreground mb-3">
-          Signal Processing
-        </p>
-        <div className="space-y-3">
-          <FieldGroup label="Filter Rules" tooltip="Expression or JSON rules that filter which incoming signals are processed">
-            <textarea
-              className={`${inputClass} resize-y min-h-[60px]`}
-              value={filterRules}
+        <div className="border-t border-border pt-3">
+          <p className="text-xs font-medium text-muted-foreground mb-3">
+            Connection Configuration
+          </p>
+          <div className="space-y-3">
+            {SubForm && (
+              <SubForm config={config} onChange={updateConfig} />
+            )}
+          </div>
+        </div>
+
+        <div className="border-t border-border pt-3">
+          <p className="text-xs font-medium text-muted-foreground mb-3">
+            Signal Processing
+          </p>
+          <div className="space-y-3">
+            <ValidatedTextarea
+              name="filterRules"
+              label="Filter Rules"
+              tooltip="Expression or JSON rules that filter which incoming signals are processed"
               placeholder="Filter expression or JSON rules"
-              onChange={(e) => updateProp({ filterRules: e.target.value })}
             />
-          </FieldGroup>
 
-          <FieldGroup label="Field Mapping" tooltip="JSON mapping from source fields to target case-file item fields">
-            <textarea
-              className={`${inputClass} resize-y min-h-[60px]`}
-              value={fieldMapping}
+            <ValidatedTextarea
+              name="fieldMapping"
+              label="Field Mapping"
+              tooltip="JSON mapping from source fields to target case-file item fields"
               placeholder='{"source_field": "target_field"}'
-              onChange={(e) => updateProp({ fieldMapping: e.target.value })}
             />
-          </FieldGroup>
 
-          <FieldGroup label="Target Case Plan Model" tooltip="The case plan model that receives signals from this connector">
-            <input
-              className={inputClass}
-              value={targetCpm}
+            <ValidatedTextInput
+              name="targetCpm"
+              label="Target Case Plan Model"
+              tooltip="The case plan model that receives signals from this connector"
               placeholder="Select target CPM"
-              onChange={(e) => updateProp({ targetCpm: e.target.value })}
             />
-          </FieldGroup>
 
-          <FieldGroup label="Daily Signal Limit" tooltip="Maximum number of signals this connector may process per day (0 = unlimited)">
-            <input
-              type="number"
-              className={inputClass}
-              value={dailySignalLimit}
+            <ValidatedNumberInput
+              name="dailySignalLimit"
+              label="Daily Signal Limit"
+              tooltip="Maximum number of signals this connector may process per day (0 = unlimited)"
               min={0}
-              onChange={(e) => updateProp({ dailySignalLimit: parseInt(e.target.value, 10) || 0 })}
             />
-          </FieldGroup>
 
-          <FieldGroup label="Active" tooltip="Whether this connector is currently accepting and processing signals">
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={active}
-                onChange={(e) => updateProp({ active: e.target.checked })}
-              />
-              Connector is active
-            </label>
-          </FieldGroup>
+            <Controller
+              name="active"
+              render={({ field }) => (
+                <div>
+                  <FieldLabel label="Active" tooltip="Whether this connector is currently accepting and processing signals" />
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={field.value ?? true}
+                      onChange={(e) => field.onChange(e.target.checked)}
+                    />
+                    Connector is active
+                  </label>
+                </div>
+              )}
+            />
+          </div>
         </div>
+
+        <dialog
+          ref={confirmDialogRef}
+          className="rounded-lg border border-border bg-background p-4 shadow-lg backdrop:bg-black/40 max-w-sm"
+        >
+          <h3 className="text-sm font-semibold mb-2">Change Connector Type?</h3>
+          <p className="text-xs text-muted-foreground mb-4">
+            Switching the connector type will discard the current connection
+            configuration. This cannot be undone.
+          </p>
+          <div className="flex justify-end gap-2">
+            <button
+              className="rounded px-3 py-1 text-sm border border-border hover:bg-accent"
+              onClick={cancelTypeSwitch}
+            >
+              Cancel
+            </button>
+            <button
+              className="rounded px-3 py-1 text-sm bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={confirmTypeSwitch}
+            >
+              Discard &amp; Switch
+            </button>
+          </div>
+        </dialog>
       </div>
-
-      <dialog
-        ref={confirmDialogRef}
-        className="rounded-lg border border-border bg-background p-4 shadow-lg backdrop:bg-black/40 max-w-sm"
-      >
-        <h3 className="text-sm font-semibold mb-2">Change Connector Type?</h3>
-        <p className="text-xs text-muted-foreground mb-4">
-          Switching the connector type will discard the current connection
-          configuration. This cannot be undone.
-        </p>
-        <div className="flex justify-end gap-2">
-          <button
-            className="rounded px-3 py-1 text-sm border border-border hover:bg-accent"
-            onClick={cancelTypeSwitch}
-          >
-            Cancel
-          </button>
-          <button
-            className="rounded px-3 py-1 text-sm bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            onClick={confirmTypeSwitch}
-          >
-            Discard &amp; Switch
-          </button>
-        </div>
-      </dialog>
-    </div>
+    </FormProvider>
   )
 }

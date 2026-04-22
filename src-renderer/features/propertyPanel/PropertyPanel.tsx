@@ -238,7 +238,7 @@ function NodeProperties({ node }: { node: Node }) {
     <div>
       <ElementHeader node={node} onNameChange={handleNameChange} />
       {TypedPanel ? (
-        <TypedPanel node={node} />
+        <TypedPanel key={node.id} node={node} />
       ) : isConnectorNode(node) ? (
         <ConnectorProperties node={node} />
       ) : (

@@ -1,36 +1,15 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useState } from 'react'
 import type { Node } from '@xyflow/react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
-import { useCanvasStore } from '@/state/canvasStore'
-import { UpdateElementPropertiesCommand } from '@/state/commands'
-import { FieldLabel } from './HelpTooltip'
+import { FormProvider } from 'react-hook-form'
+import { domainContextSchema } from '@/lib/validation'
+import { useValidatedPropertyForm } from '@/hooks/useValidatedPropertyForm'
+import { ValidatedTextInput, ValidatedSelectInput } from './ValidatedFields'
 
-function getData(node: Node): Record<string, unknown> {
-  return node.data as Record<string, unknown>
-}
-
-function useDomainContextUpdate(nodeId: string) {
-  const pushCommand = useCanvasStore((s) => s.pushCommand)
-  const nodes = useCanvasStore((s) => s.nodes)
-
-  const currentData = useMemo(() => {
-    const node = nodes.find((n) => n.id === nodeId)
-    return node ? getData(node) : {}
-  }, [nodes, nodeId])
-
-  const updateProps = useCallback(
-    (props: Record<string, unknown>) => {
-      const oldProps: Record<string, unknown> = {}
-      for (const key of Object.keys(props)) {
-        oldProps[key] = currentData[key]
-      }
-      pushCommand(new UpdateElementPropertiesCommand(nodeId, props, oldProps))
-    },
-    [nodeId, pushCommand, currentData],
-  )
-
-  return { data: currentData, updateProps }
-}
+const bindingModeOptions = [
+  { value: 'reference', label: 'Reference' },
+  { value: 'copy', label: 'Copy' },
+] as const
 
 function CollapsibleSection({
   title,
@@ -112,103 +91,81 @@ function LibraryPickerDialog({
   )
 }
 
+function extractStringList(data: unknown): string[] {
+  if (Array.isArray(data)) return data as string[]
+  if (data && typeof data === 'object') return Object.keys(data as Record<string, unknown>)
+  return []
+}
+
 export function DomainContextProperties({ node }: { node: Node }) {
-  const { data } = useDomainContextUpdate(node.id)
+  const { form } = useValidatedPropertyForm(domainContextSchema, node.id)
   const [pickerOpen, setPickerOpen] = useState(false)
 
-  const domainName = String(data.domainName ?? data.label ?? 'Unnamed Domain')
-  const domainVersion = String(data.domainVersion ?? '1.0.0')
-  const bindingMode = String(data.bindingMode ?? 'reference') as 'reference' | 'copy'
-
-  const vocabulary = Array.isArray(data.vocabulary)
-    ? (data.vocabulary as string[])
-    : data.vocabulary && typeof data.vocabulary === 'object'
-      ? Object.keys(data.vocabulary as Record<string, unknown>)
-      : []
-
-  const schemas = Array.isArray(data.schemas)
-    ? (data.schemas as string[])
-    : data.schemas && typeof data.schemas === 'object'
-      ? Object.keys(data.schemas as Record<string, unknown>)
-      : []
-
-  const rules = Array.isArray(data.rules)
-    ? (data.rules as string[])
-    : data.rules && typeof data.rules === 'object'
-      ? Object.keys(data.rules as Record<string, unknown>)
-      : []
-
-  const decisionTables = Array.isArray(data.decisionTables)
-    ? (data.decisionTables as string[])
-    : data.decisionTables && typeof data.decisionTables === 'object'
-      ? Object.keys(data.decisionTables as Record<string, unknown>)
-      : []
+  const nodeData = node.data as Record<string, unknown>
+  const vocabulary = extractStringList(nodeData.vocabulary)
+  const schemas = extractStringList(nodeData.schemas)
+  const rules = extractStringList(nodeData.rules)
+  const decisionTables = extractStringList(nodeData.decisionTables)
 
   return (
-    <div className="space-y-4">
-      <div>
-        <FieldLabel label="Domain Name" tooltip="The name of the domain context bound to this element" />
-        <input
-          className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
-          value={domainName}
+    <FormProvider {...form}>
+      <div className="space-y-4">
+        <ValidatedTextInput
+          name="label"
+          label="Domain Name"
+          tooltip="The name of the domain context bound to this element"
           readOnly
         />
-      </div>
 
-      <div>
-        <FieldLabel label="Version" tooltip="The version of the domain context definition" />
-        <input
-          className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
-          value={domainVersion}
+        <ValidatedTextInput
+          name="version"
+          label="Version"
+          tooltip="The version of the domain context definition"
           readOnly
         />
-      </div>
 
-      <div>
-        <FieldLabel label="Binding Mode" tooltip="Whether this domain context is linked by reference or copied into the model" />
-        <div className="flex items-center gap-2">
-          <input
-            className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
-            value={bindingMode}
-            readOnly
-          />
+        <ValidatedSelectInput
+          name="bindingMode"
+          label="Binding Mode"
+          tooltip="Whether this domain context is linked by reference or copied into the model"
+          options={bindingModeOptions}
+        />
+
+        <div>
+          <button
+            type="button"
+            className="w-full rounded border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent/50"
+            onClick={() => setPickerOpen(true)}
+          >
+            Change&hellip;
+          </button>
         </div>
-      </div>
 
-      <div>
-        <button
-          type="button"
-          className="w-full rounded border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent/50"
-          onClick={() => setPickerOpen(true)}
-        >
-          Change&hellip;
-        </button>
-      </div>
+        <div className="pt-2 border-t border-border">
+          <h3 className="text-xs font-semibold mb-2 text-muted-foreground uppercase tracking-wide">
+            Domain Summary
+          </h3>
+          <div className="space-y-2">
+            <CollapsibleSection title="Vocabulary" count={vocabulary.length}>
+              <SummaryList items={vocabulary} />
+            </CollapsibleSection>
 
-      <div className="pt-2 border-t border-border">
-        <h3 className="text-xs font-semibold mb-2 text-muted-foreground uppercase tracking-wide">
-          Domain Summary
-        </h3>
-        <div className="space-y-2">
-          <CollapsibleSection title="Vocabulary" count={vocabulary.length}>
-            <SummaryList items={vocabulary} />
-          </CollapsibleSection>
+            <CollapsibleSection title="Schemas" count={schemas.length}>
+              <SummaryList items={schemas} />
+            </CollapsibleSection>
 
-          <CollapsibleSection title="Schemas" count={schemas.length}>
-            <SummaryList items={schemas} />
-          </CollapsibleSection>
+            <CollapsibleSection title="Rules" count={rules.length}>
+              <SummaryList items={rules} />
+            </CollapsibleSection>
 
-          <CollapsibleSection title="Rules" count={rules.length}>
-            <SummaryList items={rules} />
-          </CollapsibleSection>
-
-          <CollapsibleSection title="Decision Tables" count={decisionTables.length}>
-            <SummaryList items={decisionTables} />
-          </CollapsibleSection>
+            <CollapsibleSection title="Decision Tables" count={decisionTables.length}>
+              <SummaryList items={decisionTables} />
+            </CollapsibleSection>
+          </div>
         </div>
-      </div>
 
-      <LibraryPickerDialog open={pickerOpen} onClose={() => setPickerOpen(false)} />
-    </div>
+        <LibraryPickerDialog open={pickerOpen} onClose={() => setPickerOpen(false)} />
+      </div>
+    </FormProvider>
   )
 }

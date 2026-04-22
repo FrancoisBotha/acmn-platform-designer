@@ -1,9 +1,15 @@
-import { useCallback } from 'react'
 import type { Node } from '@xyflow/react'
-import { useCanvasStore } from '@/state/canvasStore'
-import { UpdateElementPropertiesCommand } from '@/state/commands'
+import { FormProvider, Controller } from 'react-hook-form'
+import { toolSchema } from '@/lib/validation'
+import { useValidatedPropertyForm } from '@/hooks/useValidatedPropertyForm'
 import { MonacoField } from './MonacoField'
-import { FieldLabel } from './HelpTooltip'
+import {
+  FieldLabel,
+  FieldError,
+  ValidatedTextInput,
+  ValidatedSelectInput,
+  ValidatedTextarea,
+} from './ValidatedFields'
 
 const invocationPolicyOptions = [
   { value: 'auto', label: 'Auto' },
@@ -12,85 +18,69 @@ const invocationPolicyOptions = [
 ] as const
 
 export function ToolProperties({ node }: { node: Node }) {
-  const pushCommand = useCanvasStore((s) => s.pushCommand)
-  const data = node.data as Record<string, unknown>
-
-  const toolId = String(data.toolId ?? node.id)
-  const name = String(data.label ?? '')
-  const description = String(data.description ?? '')
-  const inputSchema = String(data.inputSchema ?? '{}')
-  const outputSchema = String(data.outputSchema ?? '{}')
-  const invocationPolicy = String(data.invocationPolicy ?? 'auto')
-
-  const updateProp = useCallback(
-    (props: Record<string, unknown>) => {
-      pushCommand(new UpdateElementPropertiesCommand(node.id, props, {}))
-    },
-    [node.id, pushCommand],
-  )
+  const { form } = useValidatedPropertyForm(toolSchema, node.id)
 
   return (
-    <div className="space-y-4">
-      <div>
-        <FieldLabel label="Tool ID" tooltip="Unique identifier for this tool within the case plan model" />
-        <input
-          className="w-full rounded border border-border bg-muted px-2 py-1 text-xs font-mono"
-          value={toolId}
-          readOnly
-        />
-      </div>
+    <FormProvider {...form}>
+      <div className="space-y-4">
+        <div>
+          <FieldLabel label="Tool ID" tooltip="Unique identifier for this tool within the case plan model" />
+          <input
+            className="w-full rounded border border-border bg-muted px-2 py-1 text-xs font-mono"
+            value={node.id}
+            readOnly
+          />
+        </div>
 
-      <div>
-        <FieldLabel label="Name" tooltip="Display name for this tool as shown on the canvas and in agent tool lists" />
-        <input
-          className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
-          value={name}
-          onChange={(e) => updateProp({ label: e.target.value })}
-        />
-      </div>
+        <ValidatedTextInput name="label" label="Name" tooltip="Display name for this tool as shown on the canvas and in agent tool lists" />
 
-      <div>
-        <FieldLabel label="Description" tooltip="A brief explanation of what this tool does and when it should be invoked" />
-        <textarea
-          className="w-full rounded border border-border bg-background px-2 py-1 text-sm resize-y min-h-[60px]"
-          value={description}
+        <ValidatedTextarea
+          name="description"
+          label="Description"
+          tooltip="A brief explanation of what this tool does and when it should be invoked"
           placeholder="Describe what this tool does"
-          onChange={(e) => updateProp({ description: e.target.value })}
+        />
+
+        <Controller
+          name="inputSchema"
+          render={({ field, fieldState }) => (
+            <div>
+              <FieldLabel label="Input Schema" tooltip="JSON schema defining the expected input parameters for this tool" />
+              <MonacoField
+                value={field.value ?? '{}'}
+                onChange={field.onChange}
+                language="json"
+                label="Input Schema"
+              />
+              <FieldError message={fieldState.error?.message} />
+            </div>
+          )}
+        />
+
+        <Controller
+          name="outputSchema"
+          render={({ field, fieldState }) => (
+            <div>
+              <FieldLabel label="Output Schema" tooltip="JSON schema defining the structure of this tool's output" />
+              <MonacoField
+                value={field.value ?? '{}'}
+                onChange={field.onChange}
+                language="json"
+                label="Output Schema"
+              />
+              <FieldError message={fieldState.error?.message} />
+            </div>
+          )}
+        />
+
+        <ValidatedSelectInput
+          name="invocationPolicy"
+          label="Invocation Policy"
+          tooltip="Controls whether the tool runs automatically or requires human confirmation"
+          options={invocationPolicyOptions}
         />
       </div>
 
-      <div>
-        <FieldLabel label="Input Schema" tooltip="JSON schema defining the expected input parameters for this tool" />
-        <MonacoField
-          value={inputSchema}
-          onChange={(v) => updateProp({ inputSchema: v })}
-          language="json"
-          label="Input Schema"
-        />
-      </div>
-
-      <div>
-        <FieldLabel label="Output Schema" tooltip="JSON schema defining the structure of this tool's output" />
-        <MonacoField
-          value={outputSchema}
-          onChange={(v) => updateProp({ outputSchema: v })}
-          language="json"
-          label="Output Schema"
-        />
-      </div>
-
-      <div>
-        <FieldLabel label="Invocation Policy" tooltip="Controls whether the tool runs automatically or requires human confirmation" />
-        <select
-          className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
-          value={invocationPolicy}
-          onChange={(e) => updateProp({ invocationPolicy: e.target.value })}
-        >
-          {invocationPolicyOptions.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
-      </div>
-    </div>
+    </FormProvider>
   )
 }

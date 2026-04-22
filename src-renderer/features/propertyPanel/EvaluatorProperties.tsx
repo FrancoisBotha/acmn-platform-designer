@@ -1,9 +1,16 @@
 import { useCallback } from 'react'
 import type { Node } from '@xyflow/react'
 import { Plus, Trash2 } from 'lucide-react'
-import { useCanvasStore } from '@/state/canvasStore'
-import { UpdateElementPropertiesCommand } from '@/state/commands'
-import { FieldLabel } from './HelpTooltip'
+import { FormProvider, Controller, useFormContext, useFieldArray } from 'react-hook-form'
+import { evaluatorSchema } from '@/lib/validation'
+import { useValidatedPropertyForm } from '@/hooks/useValidatedPropertyForm'
+import {
+  FieldLabel,
+  FieldError,
+  ValidatedSelectInput,
+  ValidatedNumberInput,
+  ValidatedTextInput,
+} from './ValidatedFields'
 
 const evaluatorTypeOptions = [
   { value: 'llm_judge', label: 'LLM Judge' },
@@ -19,98 +26,59 @@ const onExhaustedPolicyOptions = [
   { value: 'escalate', label: 'Escalate' },
 ] as const
 
-interface Criterion {
-  name: string
-  weight: number
-  threshold: number
-}
-
-function parseCriteria(raw: unknown): Criterion[] {
-  if (Array.isArray(raw)) return raw as Criterion[]
-  return []
-}
-
-export function EvaluatorProperties({ node }: { node: Node }) {
-  const pushCommand = useCanvasStore((s) => s.pushCommand)
-  const data = node.data as Record<string, unknown>
-
-  const evaluatorType = String(data.evaluatorType ?? 'llm_judge')
-  const criteria = parseCriteria(data.criteria)
-  const maxRetries = Number(data.maxRetries ?? 3)
-  const onExhaustedPolicy = String(data.onExhaustedPolicy ?? 'fail')
-  const feedbackPortLabel = String(data.feedbackPortLabel ?? 'feedback')
-  const escalationPortLabel = String(data.escalationPortLabel ?? 'escalation')
-
-  const updateProp = useCallback(
-    (props: Record<string, unknown>) => {
-      pushCommand(new UpdateElementPropertiesCommand(node.id, props, {}))
-    },
-    [node.id, pushCommand],
-  )
+function CriteriaSection() {
+  const { control, formState: { errors } } = useFormContext()
+  const { fields, append, remove } = useFieldArray({ control, name: 'criteria' })
 
   const addCriterion = useCallback(() => {
-    const next = [...criteria, { name: '', weight: 1, threshold: 0.5 }]
-    updateProp({ criteria: next })
-  }, [criteria, updateProp])
-
-  const removeCriterion = useCallback(
-    (index: number) => {
-      const next = criteria.filter((_, i) => i !== index)
-      updateProp({ criteria: next })
-    },
-    [criteria, updateProp],
-  )
-
-  const updateCriterion = useCallback(
-    (index: number, field: keyof Criterion, value: string | number) => {
-      const next = criteria.map((c, i) => (i === index ? { ...c, [field]: value } : c))
-      updateProp({ criteria: next })
-    },
-    [criteria, updateProp],
-  )
+    append({ name: '', weight: 1, threshold: 0.5 })
+  }, [append])
 
   return (
-    <div className="space-y-4">
-      <div>
-        <FieldLabel label="Evaluator Type" tooltip="The evaluation method used to assess agent output quality" />
-        <select
-          className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
-          value={evaluatorType}
-          onChange={(e) => updateProp({ evaluatorType: e.target.value })}
+    <div>
+      <div className="flex items-center justify-between mb-1">
+        <FieldLabel label="Criteria" tooltip="Evaluation criteria with individual weights and pass/fail thresholds" />
+        <button
+          className="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs hover:bg-accent text-muted-foreground"
+          onClick={addCriterion}
         >
-          {evaluatorTypeOptions.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
+          <Plus className="h-3 w-3" />
+          Add
+        </button>
       </div>
+      {fields.length === 0 ? (
+        <p className="text-xs text-muted-foreground italic py-2">
+          No criteria defined. Click Add to create one.
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {fields.map((field, i) => {
+            const criteriaErrors = errors.criteria as
+              | { [index: number]: { name?: { message?: string }; weight?: { message?: string }; threshold?: { message?: string } } }
+              | undefined
 
-      <div>
-        <div className="flex items-center justify-between mb-1">
-          <FieldLabel label="Criteria" tooltip="Evaluation criteria with individual weights and pass/fail thresholds" />
-          <button
-            className="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs hover:bg-accent text-muted-foreground"
-            onClick={addCriterion}
-          >
-            <Plus className="h-3 w-3" />
-            Add
-          </button>
-        </div>
-        {criteria.length === 0 ? (
-          <p className="text-xs text-muted-foreground italic py-2">No criteria defined. Click Add to create one.</p>
-        ) : (
-          <div className="space-y-2">
-            {criteria.map((c, i) => (
-              <div key={i} className="rounded border border-border bg-muted/30 p-2 space-y-2">
+            return (
+              <div key={field.id} className="rounded border border-border bg-muted/30 p-2 space-y-2">
                 <div className="flex items-center gap-2">
-                  <input
-                    className="flex-1 rounded border border-border bg-background px-2 py-1 text-sm"
-                    placeholder="Criterion name"
-                    value={c.name}
-                    onChange={(e) => updateCriterion(i, 'name', e.target.value)}
+                  <Controller
+                    name={`criteria.${i}.name`}
+                    control={control}
+                    render={({ field: f, fieldState }) => (
+                      <div className="flex-1">
+                        <input
+                          className={`w-full rounded border ${fieldState.error ? 'border-red-500' : 'border-border'} bg-background px-2 py-1 text-sm`}
+                          placeholder="Criterion name"
+                          value={f.value ?? ''}
+                          onChange={f.onChange}
+                          onBlur={f.onBlur}
+                        />
+                        <FieldError message={fieldState.error?.message} />
+                      </div>
+                    )}
                   />
                   <button
                     className="flex items-center justify-center w-6 h-6 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive"
-                    onClick={() => removeCriterion(i)}
+                    onClick={() => remove(i)}
                     aria-label="Remove criterion"
                   >
                     <Trash2 className="h-3 w-3" />
@@ -119,82 +87,133 @@ export function EvaluatorProperties({ node }: { node: Node }) {
                 <div className="flex items-center gap-2">
                   <div className="flex-1">
                     <label className="block text-[10px] text-muted-foreground mb-0.5">Weight</label>
-                    <input
-                      type="number"
-                      className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
-                      value={c.weight}
-                      min={0}
-                      step={0.1}
-                      onChange={(e) => updateCriterion(i, 'weight', parseFloat(e.target.value) || 0)}
+                    <Controller
+                      name={`criteria.${i}.weight`}
+                      control={control}
+                      render={({ field: f, fieldState }) => (
+                        <>
+                          <input
+                            type="number"
+                            className={`w-full rounded border ${fieldState.error ? 'border-red-500' : 'border-border'} bg-background px-2 py-1 text-sm`}
+                            value={f.value ?? ''}
+                            min={0}
+                            step={0.1}
+                            onChange={(e) => f.onChange(parseFloat(e.target.value) || 0)}
+                            onBlur={f.onBlur}
+                          />
+                          <FieldError message={fieldState.error?.message} />
+                        </>
+                      )}
                     />
                   </div>
                   <div className="flex-1">
                     <label className="block text-[10px] text-muted-foreground mb-0.5">Threshold</label>
-                    <input
-                      type="number"
-                      className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
-                      value={c.threshold}
-                      min={0}
-                      max={1}
-                      step={0.05}
-                      onChange={(e) => updateCriterion(i, 'threshold', parseFloat(e.target.value) || 0)}
+                    <Controller
+                      name={`criteria.${i}.threshold`}
+                      control={control}
+                      render={({ field: f, fieldState }) => (
+                        <>
+                          <input
+                            type="number"
+                            className={`w-full rounded border ${fieldState.error ? 'border-red-500' : 'border-border'} bg-background px-2 py-1 text-sm`}
+                            value={f.value ?? ''}
+                            min={0}
+                            max={1}
+                            step={0.05}
+                            onChange={(e) => f.onChange(parseFloat(e.target.value) || 0)}
+                            onBlur={f.onBlur}
+                          />
+                          <FieldError message={fieldState.error?.message} />
+                        </>
+                      )}
                     />
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
 
-      <div>
-        <FieldLabel label="Max Retries" tooltip="Maximum number of retry attempts before the on-exhausted policy takes effect" />
-        <input
-          type="number"
-          className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
-          value={maxRetries}
+export function EvaluatorProperties({ node }: { node: Node }) {
+  const { form } = useValidatedPropertyForm(evaluatorSchema, node.id)
+
+  return (
+    <FormProvider {...form}>
+      <div className="space-y-4">
+        <ValidatedSelectInput
+          name="evaluatorType"
+          label="Evaluator Type"
+          tooltip="The evaluation method used to assess agent output quality"
+          options={evaluatorTypeOptions}
+        />
+
+        <CriteriaSection />
+
+        <ValidatedNumberInput
+          name="maxRetries"
+          label="Max Retries"
+          tooltip="Maximum number of retry attempts before the on-exhausted policy takes effect"
           min={0}
           max={10}
-          onChange={(e) => updateProp({ maxRetries: parseInt(e.target.value, 10) || 0 })}
         />
-      </div>
 
-      <div>
-        <FieldLabel label="On Exhausted Policy" tooltip="What happens when all retries are exhausted without a passing evaluation" />
-        <select
-          className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
-          value={onExhaustedPolicy}
-          onChange={(e) => updateProp({ onExhaustedPolicy: e.target.value })}
-        >
-          {onExhaustedPolicyOptions.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
-      </div>
+        <ValidatedSelectInput
+          name="onExhaustedPolicy"
+          label="On Exhausted Policy"
+          tooltip="What happens when all retries are exhausted without a passing evaluation"
+          options={onExhaustedPolicyOptions}
+        />
 
-      <div>
-        <FieldLabel label="Port Configuration" tooltip="Labels for the feedback and escalation output ports" />
-        <div className="space-y-2 rounded border border-border bg-muted/30 p-3">
-          <div className="flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-blue-500 shrink-0" />
-            <label className="text-xs text-muted-foreground shrink-0 w-16">Feedback</label>
-            <input
-              className="flex-1 rounded border border-border bg-background px-2 py-1 text-sm"
-              value={feedbackPortLabel}
-              onChange={(e) => updateProp({ feedbackPortLabel: e.target.value })}
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-red-500 shrink-0" />
-            <label className="text-xs text-muted-foreground shrink-0 w-16">Escalation</label>
-            <input
-              className="flex-1 rounded border border-border bg-background px-2 py-1 text-sm"
-              value={escalationPortLabel}
-              onChange={(e) => updateProp({ escalationPortLabel: e.target.value })}
-            />
+        <div>
+          <FieldLabel label="Port Configuration" tooltip="Labels for the feedback and escalation output ports" />
+          <div className="space-y-2 rounded border border-border bg-muted/30 p-3">
+            <div className="flex items-center gap-2">
+              <span className="inline-block w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+              <Controller
+                name="feedbackPortLabel"
+                render={({ field, fieldState }) => (
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs text-muted-foreground shrink-0 w-16">Feedback</label>
+                      <input
+                        className={`flex-1 rounded border ${fieldState.error ? 'border-red-500' : 'border-border'} bg-background px-2 py-1 text-sm`}
+                        value={field.value ?? ''}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                      />
+                    </div>
+                    <FieldError message={fieldState.error?.message} />
+                  </div>
+                )}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="inline-block w-2 h-2 rounded-full bg-red-500 shrink-0" />
+              <Controller
+                name="escalationPortLabel"
+                render={({ field, fieldState }) => (
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs text-muted-foreground shrink-0 w-16">Escalation</label>
+                      <input
+                        className={`flex-1 rounded border ${fieldState.error ? 'border-red-500' : 'border-border'} bg-background px-2 py-1 text-sm`}
+                        value={field.value ?? ''}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                      />
+                    </div>
+                    <FieldError message={fieldState.error?.message} />
+                  </div>
+                )}
+              />
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </FormProvider>
   )
 }

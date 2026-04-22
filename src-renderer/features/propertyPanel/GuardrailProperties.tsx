@@ -1,9 +1,14 @@
-import { useCallback } from 'react'
 import type { Node } from '@xyflow/react'
-import { useCanvasStore } from '@/state/canvasStore'
-import { UpdateElementPropertiesCommand } from '@/state/commands'
+import { FormProvider, Controller } from 'react-hook-form'
+import { guardrailSchema } from '@/lib/validation'
+import { useValidatedPropertyForm } from '@/hooks/useValidatedPropertyForm'
 import { MonacoField } from './MonacoField'
-import { FieldLabel } from './HelpTooltip'
+import {
+  FieldLabel,
+  FieldError,
+  ValidatedTextInput,
+  ValidatedSelectInput,
+} from './ValidatedFields'
 
 const guardrailTypeOptions = [
   { value: 'content_filter', label: 'Content Filter' },
@@ -21,83 +26,87 @@ const violationActionOptions = [
 ] as const
 
 export function GuardrailProperties({ node }: { node: Node }) {
-  const pushCommand = useCanvasStore((s) => s.pushCommand)
-  const data = node.data as Record<string, unknown>
-
-  const guardrailType = String(data.guardrailType ?? 'content_filter')
-  const ruleDefinition = String(data.ruleDefinition ?? '')
-  const violationAction = String(data.violationAction ?? 'block')
-  const passPortLabel = String(data.passPortLabel ?? 'pass')
-  const failPortLabel = String(data.failPortLabel ?? 'fail')
-
-  const updateProp = useCallback(
-    (props: Record<string, unknown>) => {
-      pushCommand(new UpdateElementPropertiesCommand(node.id, props, {}))
-    },
-    [node.id, pushCommand],
-  )
+  const { form } = useValidatedPropertyForm(guardrailSchema, node.id)
 
   return (
-    <div className="space-y-4">
-      <div>
-        <FieldLabel label="Guardrail Type" tooltip="The category of safety check this guardrail performs" />
-        <select
-          className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
-          value={guardrailType}
-          onChange={(e) => updateProp({ guardrailType: e.target.value })}
-        >
-          {guardrailTypeOptions.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <FieldLabel label="Rule Definition / Prompt" tooltip="The rule expression or prompt that defines what this guardrail checks" />
-        <MonacoField
-          value={ruleDefinition}
-          onChange={(v) => updateProp({ ruleDefinition: v })}
-          language="plaintext"
-          label="Rule Definition / Prompt"
+    <FormProvider {...form}>
+      <div className="space-y-4">
+        <ValidatedSelectInput
+          name="guardrailType"
+          label="Guardrail Type"
+          tooltip="The category of safety check this guardrail performs"
+          options={guardrailTypeOptions}
         />
-      </div>
 
-      <div>
-        <FieldLabel label="Violation Action" tooltip="What happens when this guardrail detects a violation" />
-        <select
-          className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
-          value={violationAction}
-          onChange={(e) => updateProp({ violationAction: e.target.value })}
-        >
-          {violationActionOptions.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
-      </div>
+        <Controller
+          name="ruleDefinition"
+          render={({ field, fieldState }) => (
+            <div>
+              <FieldLabel label="Rule Definition / Prompt" tooltip="The rule expression or prompt that defines what this guardrail checks" />
+              <MonacoField
+                value={field.value ?? ''}
+                onChange={field.onChange}
+                language="plaintext"
+                label="Rule Definition / Prompt"
+              />
+              <FieldError message={fieldState.error?.message} />
+            </div>
+          )}
+        />
 
-      <div>
-        <FieldLabel label="Port Configuration" tooltip="Labels for the pass and fail output ports of this guardrail" />
-        <div className="space-y-2 rounded border border-border bg-muted/30 p-3">
-          <div className="flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-green-500 shrink-0" />
-            <label className="text-xs text-muted-foreground shrink-0 w-12">Pass</label>
-            <input
-              className="flex-1 rounded border border-border bg-background px-2 py-1 text-sm"
-              value={passPortLabel}
-              onChange={(e) => updateProp({ passPortLabel: e.target.value })}
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-red-500 shrink-0" />
-            <label className="text-xs text-muted-foreground shrink-0 w-12">Fail</label>
-            <input
-              className="flex-1 rounded border border-border bg-background px-2 py-1 text-sm"
-              value={failPortLabel}
-              onChange={(e) => updateProp({ failPortLabel: e.target.value })}
-            />
+        <ValidatedSelectInput
+          name="violationAction"
+          label="Violation Action"
+          tooltip="What happens when this guardrail detects a violation"
+          options={violationActionOptions}
+        />
+
+        <div>
+          <FieldLabel label="Port Configuration" tooltip="Labels for the pass and fail output ports of this guardrail" />
+          <div className="space-y-2 rounded border border-border bg-muted/30 p-3">
+            <div className="flex items-center gap-2">
+              <span className="inline-block w-2 h-2 rounded-full bg-green-500 shrink-0" />
+              <Controller
+                name="passPortLabel"
+                render={({ field, fieldState }) => (
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs text-muted-foreground shrink-0 w-12">Pass</label>
+                      <input
+                        className={`flex-1 rounded border ${fieldState.error ? 'border-red-500' : 'border-border'} bg-background px-2 py-1 text-sm`}
+                        value={field.value ?? ''}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                      />
+                    </div>
+                    <FieldError message={fieldState.error?.message} />
+                  </div>
+                )}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="inline-block w-2 h-2 rounded-full bg-red-500 shrink-0" />
+              <Controller
+                name="failPortLabel"
+                render={({ field, fieldState }) => (
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs text-muted-foreground shrink-0 w-12">Fail</label>
+                      <input
+                        className={`flex-1 rounded border ${fieldState.error ? 'border-red-500' : 'border-border'} bg-background px-2 py-1 text-sm`}
+                        value={field.value ?? ''}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                      />
+                    </div>
+                    <FieldError message={fieldState.error?.message} />
+                  </div>
+                )}
+              />
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </FormProvider>
   )
 }
