@@ -44,10 +44,12 @@ import { WelcomeScreen } from '@/features/welcome/WelcomeScreen'
 import { TopBar } from '@/components/TopBar'
 import { DirtyCheckDialog } from '@/components/DirtyCheckDialog'
 import { MigrationToast } from '@/components/MigrationToast'
+import { RecoveryDialog } from '@/components/RecoveryDialog'
 import { SelectionBadge } from '@/components/SelectionBadge'
 import { TestPlaceholder } from '@/features/test/TestPlaceholder'
 import { PublishPlaceholder } from '@/features/publish/PublishPlaceholder'
 import { ProjectTree } from '@/features/canvas/panels/ProjectTree'
+import type { RecoveryOption } from '@/types/acmn'
 
 const nodeTypes = {
   default: DefaultNode,
@@ -414,6 +416,46 @@ function ProjectShell() {
 
 export default function App() {
   const currentProject = useProjectStore((s) => s.currentProject)
+  const setCurrentProject = useProjectStore((s) => s.setCurrentProject)
+  const [recoveryOptions, setRecoveryOptions] = useState<RecoveryOption[] | null>(null)
+  const [recoveryChecked, setRecoveryChecked] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    window.acmn.project.recover().then((options) => {
+      if (cancelled) return
+      if (options && options.length > 0) {
+        setRecoveryOptions(options)
+      }
+      setRecoveryChecked(true)
+    }).catch(() => {
+      if (!cancelled) setRecoveryChecked(true)
+    })
+    return () => { cancelled = true }
+  }, [])
+
+  const handleRecoveryComplete = useCallback(async () => {
+    setRecoveryOptions(null)
+    try {
+      const recent = await window.acmn.project.listRecent()
+      if (recent.length > 0) {
+        const project = await window.acmn.project.open(recent[0].path)
+        setCurrentProject(project)
+      }
+    } catch {
+      // Fall through to welcome screen
+    }
+  }, [setCurrentProject])
+
+  if (!recoveryChecked) return null
+
+  if (recoveryOptions && recoveryOptions.length > 0 && !currentProject) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-background text-foreground">
+        <RecoveryDialog options={recoveryOptions} onComplete={handleRecoveryComplete} />
+      </div>
+    )
+  }
 
   if (!currentProject) {
     return <WelcomeScreen />

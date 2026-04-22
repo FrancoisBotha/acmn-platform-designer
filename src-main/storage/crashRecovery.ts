@@ -28,10 +28,17 @@ async function walkForTmpFiles(dir: string, results: RecoveryOption[]): Promise<
       const lastSavedPath = await fileExists(filePath) ? filePath : ''
 
       const backupPaths: string[] = []
+      const backupMtimes: string[] = []
       for (const suffix of BACKUP_SUFFIXES) {
         const bakPath = filePath + suffix
         if (await fileExists(bakPath)) {
           backupPaths.push(bakPath)
+          try {
+            const stat = await fs.stat(bakPath)
+            backupMtimes.push(stat.mtime.toISOString())
+          } catch {
+            backupMtimes.push('')
+          }
         }
       }
 
@@ -40,6 +47,7 @@ async function walkForTmpFiles(dir: string, results: RecoveryOption[]): Promise<
         tmpPath: fullPath,
         lastSavedPath,
         backupPaths,
+        backupMtimes,
       })
     }
   }

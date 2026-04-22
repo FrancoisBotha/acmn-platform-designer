@@ -251,6 +251,7 @@ export interface RecoveryOption {
   tmpPath: string
   lastSavedPath: string
   backupPaths: string[]
+  backupMtimes: string[]
 }
 
 export interface RecoveryChoice {
