@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ReactFlow,
   Background,
@@ -33,6 +33,8 @@ import AcmnWireEdge from '@/components/edges/AcmnWireEdge'
 import { acmnElementTypeMap, nodeTypeMap } from '@/lib/acmnElementTypes'
 import { useProjectStore } from '@/state/projectStore'
 import { WelcomeScreen } from '@/features/welcome/WelcomeScreen'
+import { TopBar } from '@/components/TopBar'
+import { DirtyCheckDialog } from '@/components/DirtyCheckDialog'
 
 const nodeTypes = {
   default: DefaultNode,
@@ -60,6 +62,68 @@ function Canvas() {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
   const [edges, , onEdgesChange] = useEdgesState<Edge>([])
   const reactFlowInstance = useRef<ReactFlowInstance | null>(null)
+  const [showDirtyDialog, setShowDirtyDialog] = useState(false)
+
+  const saveProject = useProjectStore((s) => s.saveProject)
+  const saveProjectAs = useProjectStore((s) => s.saveProjectAs)
+  const dirty = useProjectStore((s) => s.dirty)
+  const clearProject = useProjectStore((s) => s.clearProject)
+  const currentProject = useProjectStore((s) => s.currentProject)
+  const activeCpmFile = useProjectStore((s) => s.activeCpmFile)
+
+  // Sync Electron window title bar
+  useEffect(() => {
+    if (!currentProject) return
+    const cpmPart = activeCpmFile ? ` · ${activeCpmFile}` : ''
+    const dirtyPart = dirty ? ' — modified' : ''
+    const title = `ACMN Designer — ${currentProject.name}${cpmPart}${dirtyPart}`
+    window.acmn.window.setTitle(title)
+  }, [currentProject, activeCpmFile, dirty])
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 's' && (e.ctrlKey || e.metaKey) && e.shiftKey) {
+        e.preventDefault()
+        saveProjectAs().catch(() => {})
+      } else if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault()
+        saveProject().catch(() => {})
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [saveProject, saveProjectAs])
+
+  const handleCloseRequest = useCallback(() => {
+    if (dirty) {
+      setShowDirtyDialog(true)
+    } else {
+      clearProject()
+      window.acmn.window.setTitle('ACMN Designer')
+    }
+  }, [dirty, clearProject])
+
+  const handleDirtySave = useCallback(async () => {
+    try {
+      await saveProject()
+      setShowDirtyDialog(false)
+      clearProject()
+      window.acmn.window.setTitle('ACMN Designer')
+    } catch {
+      setShowDirtyDialog(false)
+    }
+  }, [saveProject, clearProject])
+
+  const handleDirtyDiscard = useCallback(() => {
+    setShowDirtyDialog(false)
+    clearProject()
+    window.acmn.window.setTitle('ACMN Designer')
+  }, [clearProject])
+
+  const handleDirtyCancel = useCallback(() => {
+    setShowDirtyDialog(false)
+  }, [])
 
   const onDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -131,37 +195,49 @@ function Canvas() {
   )
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground">
-      <Palette />
+    <div className="flex flex-col h-screen w-screen overflow-hidden bg-background text-foreground">
+      <TopBar onClose={handleCloseRequest} />
 
-      <main className="flex-1 relative">
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onInit={(instance) => { reactFlowInstance.current = instance }}
-          onDragOver={onDragOver}
-          onDrop={onDrop}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          deleteKeyCode={['Delete', 'Backspace']}
-          fitView
-        >
-          <Background variant={BackgroundVariant.Dots} />
-          <Controls />
-          <MiniMap position="bottom-right" />
-        </ReactFlow>
-      </main>
+      <div className="flex flex-1 overflow-hidden">
+        <Palette />
 
-      <aside className="w-72 shrink-0 border-l border-border bg-muted/40 p-4">
-        <h2 className="mb-3 text-sm font-semibold tracking-tight">
-          Properties
-        </h2>
-        <p className="text-xs text-muted-foreground">
-          Select a node to view its properties
-        </p>
-      </aside>
+        <main className="flex-1 relative">
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onInit={(instance) => { reactFlowInstance.current = instance }}
+            onDragOver={onDragOver}
+            onDrop={onDrop}
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            deleteKeyCode={['Delete', 'Backspace']}
+            fitView
+          >
+            <Background variant={BackgroundVariant.Dots} />
+            <Controls />
+            <MiniMap position="bottom-right" />
+          </ReactFlow>
+        </main>
+
+        <aside className="w-72 shrink-0 border-l border-border bg-muted/40 p-4">
+          <h2 className="mb-3 text-sm font-semibold tracking-tight">
+            Properties
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            Select a node to view its properties
+          </p>
+        </aside>
+      </div>
+
+      {showDirtyDialog && (
+        <DirtyCheckDialog
+          onSave={handleDirtySave}
+          onDiscard={handleDirtyDiscard}
+          onCancel={handleDirtyCancel}
+        />
+      )}
     </div>
   )
 }

@@ -59,4 +59,9 @@ contextBridge.exposeInMainWorld('acmn', {
     checkFolderEmpty: (folderPath: string) =>
       ipcRenderer.invoke('dialog:checkFolderEmpty', folderPath),
   },
+
+  window: {
+    setTitle: (title: string) =>
+      ipcRenderer.invoke('window:setTitle', title),
+  },
 })

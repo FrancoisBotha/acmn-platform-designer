@@ -218,10 +218,23 @@ export class LocalBackend implements BackendContract {
   async saveProjectAs(project: Project, newPath: string): Promise<Project> {
     validateAbsolutePath(newPath)
 
-    const saved = {
+    const newCasePlanModels = project.casePlanModels.map((cpm) => ({
+      id: randomUUID(),
+      file: cpm.file,
+    }))
+
+    const newDomainContexts = project.domainContexts.map((dc) => ({
+      id: randomUUID(),
+      file: dc.file,
+    }))
+
+    const saved: Project = {
       ...project,
+      id: randomUUID(),
       path: newPath,
       modified: new Date().toISOString(),
+      casePlanModels: newCasePlanModels,
+      domainContexts: newDomainContexts,
     }
 
     const manifest = projectToManifest(saved)
@@ -230,6 +243,29 @@ export class LocalBackend implements BackendContract {
 
     for (const subdir of PROJECT_SUBDIRS) {
       await fs.mkdir(path.join(newPath, subdir), { recursive: true })
+    }
+
+    // Copy assets from original project
+    const srcAssets = path.join(project.path, 'assets')
+    try {
+      const entries = await fs.readdir(srcAssets)
+      if (entries.length > 0) {
+        await fs.cp(srcAssets, path.join(newPath, 'assets'), { recursive: true })
+      }
+    } catch {
+      // Source assets directory may not exist
+    }
+
+    // Copy case plan model files
+    for (let i = 0; i < project.casePlanModels.length; i++) {
+      const srcFile = path.join(project.path, project.casePlanModels[i].file)
+      const dstFile = path.join(newPath, newCasePlanModels[i].file)
+      try {
+        await fs.mkdir(path.dirname(dstFile), { recursive: true })
+        await fs.copyFile(srcFile, dstFile)
+      } catch {
+        // File may not exist yet
+      }
     }
 
     await fs.writeFile(

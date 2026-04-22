@@ -1,4 +1,4 @@
-import { app, BrowserWindow, session } from 'electron'
+import { app, BrowserWindow, ipcMain, session } from 'electron'
 import path from 'path'
 import type { BackendContract } from './backend/contract'
 import { LocalBackend } from './backend/localBackend'
@@ -51,6 +51,11 @@ app.whenReady().then(() => {
   backend = createBackend()
   registerProjectHandlers(backend)
   registerDialogHandlers()
+
+  ipcMain.handle('window:setTitle', (_event, title: string) => {
+    mainWindow?.setTitle(title)
+  })
+
   createWindow()
 })
 
