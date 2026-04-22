@@ -863,17 +863,10 @@ agentRuntime = new AgentRuntime({
         }
       }
 
-      // Guard: if implementation run produced no commits, don't promote to test
-      const isImplementationPhase = previousStatus === 'in_progress' || previousStatus === 'building';
-      if (isImplementationPhase && evalOutcome.nextStatus === 'test' && !implementationCommitted) {
-        evalOutcome = {
-          nextStatus: 'todo',
-          verdict: 'fail',
-          reasons: ['Implementation run completed but produced no code changes.']
-        };
-        appendTicketNote(ticket, 'Implementation produced no code changes.');
-        logSchedulerEvent('implementation.empty', 'warn', `Implementation run for ${ticket.id} produced no changes`, { ticketId: ticket.id, runId: run.runId, agentName: run.agentName });
-      }
+      // "No code changes" guard removed: agents running with --dangerously-skip-permissions
+      // commit directly during their run, so implementationCommitted is unreliable on
+      // Windows worktrees. Empty implementations will be caught by the test/eval phase.
+      // Matches the equivalent guard removal in src/main/coreCallbacks.js.
 
       ticket.status = evalOutcome.nextStatus;
 
