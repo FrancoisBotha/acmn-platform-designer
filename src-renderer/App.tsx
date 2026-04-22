@@ -5,10 +5,9 @@ import {
   BackgroundVariant,
   MiniMap,
   Controls,
-  useNodesState,
-  useEdgesState,
   type Node,
-  type Edge,
+  type NodeChange,
+  type EdgeChange,
   type ReactFlowInstance,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
@@ -32,6 +31,13 @@ import ConnectorNode from '@/components/nodes/ConnectorNode'
 import AcmnWireEdge from '@/components/edges/AcmnWireEdge'
 import { acmnElementTypeMap, nodeTypeMap } from '@/lib/acmnElementTypes'
 import { useProjectStore } from '@/state/projectStore'
+import { useCanvasStore } from '@/state/canvasStore'
+import {
+  AddElementCommand,
+  RemoveElementCommand,
+  MoveElementCommand,
+  type MoveEntry,
+} from '@/state/commands'
 import { WelcomeScreen } from '@/features/welcome/WelcomeScreen'
 import { TopBar } from '@/components/TopBar'
 import { DirtyCheckDialog } from '@/components/DirtyCheckDialog'
@@ -58,10 +64,19 @@ const edgeTypes = {
   'acmn-wire': AcmnWireEdge,
 }
 
+const containerNodeTypes = new Set(['stage', 'case-plan-model'])
+
 function Canvas() {
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
-  const [edges, , onEdgesChange] = useEdgesState<Edge>([])
+  const nodes = useCanvasStore((s) => s.nodes)
+  const edges = useCanvasStore((s) => s.edges)
+  const applyNodesChange = useCanvasStore((s) => s.applyNodesChange)
+  const applyEdgesChange = useCanvasStore((s) => s.applyEdgesChange)
+  const pushCommand = useCanvasStore((s) => s.pushCommand)
+  const undo = useCanvasStore((s) => s.undo)
+  const redo = useCanvasStore((s) => s.redo)
+
   const reactFlowInstance = useRef<ReactFlowInstance | null>(null)
+  const dragStartPositions = useRef<Map<string, { x: number; y: number }> | null>(null)
   const [showDirtyDialog, setShowDirtyDialog] = useState(false)
 
   const saveProject = useProjectStore((s) => s.saveProject)
@@ -71,7 +86,6 @@ function Canvas() {
   const currentProject = useProjectStore((s) => s.currentProject)
   const activeCpmFile = useProjectStore((s) => s.activeCpmFile)
 
-  // Sync Electron window title bar
   useEffect(() => {
     if (!currentProject) return
     const cpmPart = activeCpmFile ? ` · ${activeCpmFile}` : ''
@@ -80,20 +94,51 @@ function Canvas() {
     window.acmn.window.setTitle(title)
   }, [currentProject, activeCpmFile, dirty])
 
-  // Keyboard shortcuts
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
+      const target = e.target as HTMLElement
+      const isInput =
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.tagName === 'SELECT' ||
+        target.isContentEditable
+      const isModal = !!target.closest('[role="dialog"]')
+
       if (e.key === 's' && (e.ctrlKey || e.metaKey) && e.shiftKey) {
         e.preventDefault()
         saveProjectAs().catch(() => {})
-      } else if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
+        return
+      }
+      if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault()
         saveProject().catch(() => {})
+        return
+      }
+
+      if (isInput || isModal) return
+
+      if (e.key === 'z' && (e.ctrlKey || e.metaKey) && e.shiftKey) {
+        e.preventDefault()
+        redo()
+      } else if (e.key === 'z' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault()
+        undo()
+      } else if (e.key === 'y' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault()
+        redo()
+      } else if (e.key === 'Delete' || e.key === 'Backspace') {
+        const state = useCanvasStore.getState()
+        const selectedNodeIds = state.nodes.filter((n) => n.selected).map((n) => n.id)
+        const selectedEdgeIds = state.edges.filter((ed) => ed.selected).map((ed) => ed.id)
+        if (selectedNodeIds.length > 0 || selectedEdgeIds.length > 0) {
+          e.preventDefault()
+          pushCommand(new RemoveElementCommand(selectedNodeIds, selectedEdgeIds))
+        }
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [saveProject, saveProjectAs])
+  }, [undo, redo, pushCommand, saveProject, saveProjectAs])
 
   const handleCloseRequest = useCallback(() => {
     if (dirty) {
@@ -125,12 +170,50 @@ function Canvas() {
     setShowDirtyDialog(false)
   }, [])
 
+  const onNodesChange = useCallback(
+    (changes: NodeChange[]) => {
+      const safe = changes.filter((c) => c.type !== 'remove')
+      if (safe.length > 0) applyNodesChange(safe)
+    },
+    [applyNodesChange],
+  )
+
+  const onEdgesChange = useCallback(
+    (changes: EdgeChange[]) => {
+      const safe = changes.filter((c) => c.type !== 'remove')
+      if (safe.length > 0) applyEdgesChange(safe)
+    },
+    [applyEdgesChange],
+  )
+
+  const onNodeDragStart = useCallback((_: React.MouseEvent, _node: Node, draggedNodes: Node[]) => {
+    dragStartPositions.current = new Map(
+      draggedNodes.map((n) => [n.id, { x: n.position.x, y: n.position.y }]),
+    )
+  }, [])
+
+  const onNodeDragStop = useCallback(
+    (_: React.MouseEvent, _node: Node, draggedNodes: Node[]) => {
+      if (!dragStartPositions.current) return
+      const moves: MoveEntry[] = []
+      for (const n of draggedNodes) {
+        const from = dragStartPositions.current.get(n.id)
+        if (!from) continue
+        if (from.x === n.position.x && from.y === n.position.y) continue
+        moves.push({ id: n.id, from, to: { x: n.position.x, y: n.position.y } })
+      }
+      if (moves.length > 0) {
+        pushCommand(new MoveElementCommand(moves))
+      }
+      dragStartPositions.current = null
+    },
+    [pushCommand],
+  )
+
   const onDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     e.dataTransfer.dropEffect = 'move'
   }, [])
-
-  const containerNodeTypes = new Set(['stage', 'case-plan-model'])
 
   const onDrop = useCallback(
     (e: React.DragEvent) => {
@@ -164,34 +247,35 @@ function Canvas() {
         data: nodeData,
       }
 
-      setNodes((nds) => {
-        const parentCandidate = [...nds]
-          .reverse()
-          .find((n) => {
-            if (!containerNodeTypes.has(n.type ?? '')) return false
-            const w = n.measured?.width ?? (acmnElementTypeMap.get(n.data.elementType as string)?.defaultWidth ?? 0)
-            const h = n.measured?.height ?? (acmnElementTypeMap.get(n.data.elementType as string)?.defaultHeight ?? 0)
-            return (
-              position.x >= n.position.x &&
-              position.x <= n.position.x + w &&
-              position.y >= n.position.y &&
-              position.y <= n.position.y + h
-            )
-          })
-
-        if (parentCandidate && !containerNodeTypes.has(resolvedType)) {
-          newNode.parentId = parentCandidate.id
-          newNode.extent = 'parent'
-          newNode.position = {
-            x: position.x - parentCandidate.position.x,
-            y: position.y - parentCandidate.position.y,
-          }
-        }
-
-        return [...nds, newNode]
+      const currentNodes = useCanvasStore.getState().nodes
+      const parentCandidate = [...currentNodes].reverse().find((n) => {
+        if (!containerNodeTypes.has(n.type ?? '')) return false
+        const w =
+          n.measured?.width ??
+          (acmnElementTypeMap.get(n.data.elementType as string)?.defaultWidth ?? 0)
+        const h =
+          n.measured?.height ??
+          (acmnElementTypeMap.get(n.data.elementType as string)?.defaultHeight ?? 0)
+        return (
+          position.x >= n.position.x &&
+          position.x <= n.position.x + w &&
+          position.y >= n.position.y &&
+          position.y <= n.position.y + h
+        )
       })
+
+      if (parentCandidate && !containerNodeTypes.has(resolvedType)) {
+        newNode.parentId = parentCandidate.id
+        newNode.extent = 'parent'
+        newNode.position = {
+          x: position.x - parentCandidate.position.x,
+          y: position.y - parentCandidate.position.y,
+        }
+      }
+
+      pushCommand(new AddElementCommand(newNode))
     },
-    [setNodes],
+    [pushCommand],
   )
 
   return (
@@ -207,12 +291,16 @@ function Canvas() {
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
-            onInit={(instance) => { reactFlowInstance.current = instance }}
+            onNodeDragStart={onNodeDragStart}
+            onNodeDragStop={onNodeDragStop}
+            onInit={(instance) => {
+              reactFlowInstance.current = instance
+            }}
             onDragOver={onDragOver}
             onDrop={onDrop}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
-            deleteKeyCode={['Delete', 'Backspace']}
+            deleteKeyCode={null}
             fitView
           >
             <Background variant={BackgroundVariant.Dots} />
@@ -222,12 +310,8 @@ function Canvas() {
         </main>
 
         <aside className="w-72 shrink-0 border-l border-border bg-muted/40 p-4">
-          <h2 className="mb-3 text-sm font-semibold tracking-tight">
-            Properties
-          </h2>
-          <p className="text-xs text-muted-foreground">
-            Select a node to view its properties
-          </p>
+          <h2 className="mb-3 text-sm font-semibold tracking-tight">Properties</h2>
+          <p className="text-xs text-muted-foreground">Select a node to view its properties</p>
         </aside>
       </div>
 

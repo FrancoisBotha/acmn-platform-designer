@@ -1,4 +1,6 @@
+import { Undo2, Redo2 } from 'lucide-react'
 import { useProjectStore } from '@/state/projectStore'
+import { useCanvasStore } from '@/state/canvasStore'
 
 interface TopBarProps {
   onClose: () => void
@@ -10,6 +12,11 @@ export function TopBar({ onClose }: TopBarProps) {
   const activeCpmFile = useProjectStore((s) => s.activeCpmFile)
   const error = useProjectStore((s) => s.error)
   const setError = useProjectStore((s) => s.setError)
+
+  const undoStack = useCanvasStore((s) => s.undoStack)
+  const redoStack = useCanvasStore((s) => s.redoStack)
+  const undo = useCanvasStore((s) => s.undo)
+  const redo = useCanvasStore((s) => s.redo)
 
   if (!project) return null
 
@@ -27,6 +34,24 @@ export function TopBar({ onClose }: TopBarProps) {
           {dirty && (
             <span className="text-muted-foreground shrink-0"> — modified</span>
           )}
+          <div className="ml-2 flex items-center gap-0.5 shrink-0">
+            <button
+              onClick={undo}
+              disabled={undoStack.length === 0}
+              className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-30 disabled:pointer-events-none"
+              title="Undo (Ctrl+Z)"
+            >
+              <Undo2 size={14} />
+            </button>
+            <button
+              onClick={redo}
+              disabled={redoStack.length === 0}
+              className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-30 disabled:pointer-events-none"
+              title="Redo (Ctrl+Shift+Z)"
+            >
+              <Redo2 size={14} />
+            </button>
+          </div>
         </div>
         <button
           onClick={onClose}
