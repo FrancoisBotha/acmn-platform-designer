@@ -46,6 +46,7 @@ import { DirtyCheckDialog } from '@/components/DirtyCheckDialog'
 import { SelectionBadge } from '@/components/SelectionBadge'
 import { TestPlaceholder } from '@/features/test/TestPlaceholder'
 import { PublishPlaceholder } from '@/features/publish/PublishPlaceholder'
+import { ProjectTree } from '@/features/canvas/panels/ProjectTree'
 
 const nodeTypes = {
   default: DefaultNode,
@@ -292,6 +293,7 @@ function DesignCanvas() {
   return (
     <div className="flex flex-1 overflow-hidden">
       <Palette />
+      <ProjectTree />
 
       <main className="flex-1 relative">
         <ReactFlow
