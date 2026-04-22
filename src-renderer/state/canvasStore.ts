@@ -4,6 +4,10 @@ import { applyNodeChanges, applyEdgeChanges } from '@xyflow/react'
 import { nanoid } from 'nanoid'
 import type { CanvasCommand, CanvasData } from './commands'
 import { RemoveElementCommand, PasteElementsCommand } from './commands'
+import type { PortDirection, PortType } from '../lib/acmnElementTypes'
+import { acmnElementTypeMap } from '../lib/acmnElementTypes'
+import type { PortInfo, ConnectionEndpoint } from '../lib/portCompatibility'
+import { canConnect as canConnectPure } from '../lib/portCompatibility'
 
 const MAX_HISTORY = 100
 
@@ -185,3 +189,23 @@ export const useCanvasStore = create<CanvasState>()((set, get) => ({
     set({ clipboard: null, clipboardPasteCount: 0 })
   },
 }))
+
+export function lookupPort(nodeId: string, handleId: string): PortInfo | undefined {
+  const { nodes } = useCanvasStore.getState()
+  const node = nodes.find((n) => n.id === nodeId)
+  if (!node) return undefined
+
+  const elementType = acmnElementTypeMap.get(node.type ?? '')
+  if (!elementType) return undefined
+
+  const port = elementType.ports.find((p) => p.id === handleId)
+  if (!port) return undefined
+
+  return { portType: port.portType, direction: port.direction }
+}
+
+export function canConnect(source: ConnectionEndpoint, target: ConnectionEndpoint): boolean {
+  return canConnectPure(source, target, lookupPort)
+}
+
+export type { PortInfo, ConnectionEndpoint, PortType, PortDirection }
