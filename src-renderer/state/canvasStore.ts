@@ -16,6 +16,7 @@ export interface CanvasState {
   pushCommand: (cmd: CanvasCommand) => void
   undo: () => void
   redo: () => void
+  clearSelection: () => void
 }
 
 export const useCanvasStore = create<CanvasState>()((set, get) => ({
@@ -71,5 +72,12 @@ export const useCanvasStore = create<CanvasState>()((set, get) => ({
       redoStack: state.redoStack.slice(0, -1),
       undoStack,
     })
+  },
+
+  clearSelection: () => {
+    set((state) => ({
+      nodes: state.nodes.map((n) => (n.selected ? { ...n, selected: false } : n)),
+      edges: state.edges.map((e) => (e.selected ? { ...e, selected: false } : e)),
+    }))
   },
 }))

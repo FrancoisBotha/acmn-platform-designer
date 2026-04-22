@@ -61,3 +61,8 @@
     overflow: hidden;
   }
 }
+
+.react-flow__selection {
+  border: 2px dashed #3b82f6 !important;
+  background: rgba(59, 130, 246, 0.08) !important;
+}

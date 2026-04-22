@@ -5,6 +5,7 @@ import {
   BackgroundVariant,
   MiniMap,
   Controls,
+  SelectionMode,
   type Node,
   type NodeChange,
   type EdgeChange,
@@ -41,6 +42,7 @@ import {
 import { WelcomeScreen } from '@/features/welcome/WelcomeScreen'
 import { TopBar } from '@/components/TopBar'
 import { DirtyCheckDialog } from '@/components/DirtyCheckDialog'
+import { SelectionBadge } from '@/components/SelectionBadge'
 
 const nodeTypes = {
   default: DefaultNode,
@@ -74,6 +76,7 @@ function Canvas() {
   const pushCommand = useCanvasStore((s) => s.pushCommand)
   const undo = useCanvasStore((s) => s.undo)
   const redo = useCanvasStore((s) => s.redo)
+  const clearSelection = useCanvasStore((s) => s.clearSelection)
 
   const reactFlowInstance = useRef<ReactFlowInstance | null>(null)
   const dragStartPositions = useRef<Map<string, { x: number; y: number }> | null>(null)
@@ -85,6 +88,14 @@ function Canvas() {
   const clearProject = useProjectStore((s) => s.clearProject)
   const currentProject = useProjectStore((s) => s.currentProject)
   const activeCpmFile = useProjectStore((s) => s.activeCpmFile)
+
+  const prevCpmRef = useRef(activeCpmFile)
+  useEffect(() => {
+    if (prevCpmRef.current !== activeCpmFile) {
+      clearSelection()
+      prevCpmRef.current = activeCpmFile
+    }
+  }, [activeCpmFile, clearSelection])
 
   useEffect(() => {
     if (!currentProject) return
@@ -301,11 +312,17 @@ function Canvas() {
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             deleteKeyCode={null}
+            selectionOnDrag
+            selectionMode={SelectionMode.Partial}
+            multiSelectionKeyCode="Control"
+            panOnDrag={[1, 2]}
+            panOnScroll
             fitView
           >
             <Background variant={BackgroundVariant.Dots} />
             <Controls />
             <MiniMap position="bottom-right" />
+            <SelectionBadge />
           </ReactFlow>
         </main>
 
