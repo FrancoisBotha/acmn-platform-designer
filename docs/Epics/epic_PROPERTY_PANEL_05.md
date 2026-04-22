@@ -1,9 +1,9 @@
 # Epic: PROPERTY_PANEL
 
-**Status:** NEW
+**Status:** TICKETS
 **Owner:** human
 **Created:** 2026-04-21
-**Last Updated:** 2026-04-21
+**Last Updated:** 2026-04-22
 
 ---
 
