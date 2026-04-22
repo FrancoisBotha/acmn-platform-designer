@@ -1,6 +1,7 @@
 import { app, BrowserWindow } from 'electron'
 import path from 'path'
 import type { BackendContract } from './backend/contract'
+import { LocalBackend } from './backend/localBackend'
 import { RemoteBackend } from './backend/remoteBackend'
 
 let mainWindow: BrowserWindow | null = null
@@ -13,11 +14,7 @@ function createBackend(): BackendContract {
     return new RemoteBackend()
   }
 
-  // LocalBackend is not yet implemented — will be added by a subsequent ticket.
-  // For now, fall through to RemoteBackend as a placeholder when 'local' is selected,
-  // since LocalBackend does not exist yet. This keeps the factory structure correct
-  // while allowing the spike code to continue running (it doesn't call backend methods).
-  return new RemoteBackend()
+  return new LocalBackend()
 }
 
 function createWindow(): void {
