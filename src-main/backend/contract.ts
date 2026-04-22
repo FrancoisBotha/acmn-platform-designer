@@ -58,6 +58,21 @@ export interface RecentProject {
   missing?: boolean
 }
 
+export interface OpenProjectResult {
+  project: Project
+  migrationApplied?: {
+    fromVersion: string
+    toVersion: string
+    backupPath: string
+  }
+}
+
+export interface BackupEntry {
+  path: string
+  label: string
+  modifiedAt: string
+}
+
 // ---- Case plan model types ----
 
 export interface CasePlanModelSummary {
@@ -253,7 +268,7 @@ export interface BackendContract {
 
   // ==== Project management ====
   newProject(params: NewProjectParams): Promise<Project>
-  openProject(path: string): Promise<Project>
+  openProject(path: string): Promise<OpenProjectResult>
   saveProject(project: Project): Promise<void>
   saveProjectAs(project: Project, newPath: string): Promise<Project>
   getRecentProjects(): Promise<RecentProject[]>

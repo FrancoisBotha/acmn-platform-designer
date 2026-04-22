@@ -56,6 +56,12 @@ contextBridge.exposeInMainWorld('acmn', {
       choice: 'use-tmp' | 'use-last-saved' | 'use-backup'
       backupIndex?: number
     }) => ipcRenderer.invoke('project:applyRecovery', choice),
+
+    listBackups: (filePath: string) =>
+      ipcRenderer.invoke('project:listBackups', filePath),
+
+    openFromBackup: (projectPath: string, backupFilePath: string) =>
+      ipcRenderer.invoke('project:openFromBackup', projectPath, backupFilePath),
   },
 
   dialog: {

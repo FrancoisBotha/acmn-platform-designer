@@ -14,6 +14,8 @@ import type {
   NewProjectParams,
   Project,
   RecentProject,
+  OpenProjectResult,
+  BackupEntry,
   CasePlanModelSummary,
   CasePlanModel,
   ValidationResult,
@@ -241,7 +243,7 @@ export class LocalBackend implements BackendContract {
     return project
   }
 
-  async openProject(projectPath: string): Promise<Project> {
+  async openProject(projectPath: string): Promise<OpenProjectResult> {
     validateAbsolutePath(projectPath)
 
     const manifestPath = path.join(projectPath, MANIFEST_FILENAME)
@@ -275,6 +277,7 @@ export class LocalBackend implements BackendContract {
     }
 
     let manifest: ProjectManifest
+    let migrationApplied: OpenProjectResult['migrationApplied']
     if (compareVersions(fileVersion, CURRENT_PROJECT_FORMAT) < 0) {
       let migrated: { toVersion: string; payload: Record<string, unknown> }
       try {
@@ -282,10 +285,16 @@ export class LocalBackend implements BackendContract {
       } catch (cause) {
         throw new MigrationError(manifestPath, fileVersion, CURRENT_PROJECT_FORMAT, cause)
       }
-      await fs.copyFile(manifestPath, manifestPath + '.backup')
+      const backupPath = manifestPath + '.backup'
+      await fs.copyFile(manifestPath, backupPath)
       manifest = migrated.payload as unknown as ProjectManifest
       manifest.projectFormat = migrated.toVersion
       await writeAtomic(manifestPath, JSON.stringify(manifest, null, 2))
+      migrationApplied = {
+        fromVersion: fileVersion,
+        toVersion: migrated.toVersion,
+        backupPath,
+      }
     } else {
       manifest = parsed as unknown as ProjectManifest
     }
@@ -294,7 +303,7 @@ export class LocalBackend implements BackendContract {
 
     await this.addToRecentProjects(project)
 
-    return project
+    return { project, migrationApplied }
   }
 
   async saveProject(project: Project): Promise<void> {
@@ -481,6 +490,36 @@ export class LocalBackend implements BackendContract {
 
   async deleteTestScenario(_projectId: string, _id: string): Promise<void> {
     throw new Error('not yet implemented')
+  }
+
+  // ==== Backup recovery ====
+
+  async listBackups(filePath: string): Promise<BackupEntry[]> {
+    const entries: BackupEntry[] = []
+    for (let i = 1; i <= 3; i++) {
+      const bakPath = `${filePath}.bak.${i}`
+      try {
+        const stat = await fs.stat(bakPath)
+        entries.push({
+          path: bakPath,
+          label: `Backup ${i}${i === 1 ? ' (most recent)' : ''}`,
+          modifiedAt: stat.mtime.toISOString(),
+        })
+      } catch {
+        // backup doesn't exist
+      }
+    }
+    return entries
+  }
+
+  async openFromBackup(projectPath: string, backupFilePath: string): Promise<OpenProjectResult> {
+    validateAbsolutePath(projectPath)
+    validateAbsolutePath(backupFilePath)
+
+    const manifestPath = path.join(projectPath, MANIFEST_FILENAME)
+    await fs.copyFile(backupFilePath, manifestPath)
+
+    return this.openProject(projectPath)
   }
 
   // ==== Internal helpers ====

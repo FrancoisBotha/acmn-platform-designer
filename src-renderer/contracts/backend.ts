@@ -8,6 +8,8 @@ export type {
   User,
   NewProjectParams,
   Project,
+  OpenProjectResult,
+  BackupEntry,
   CasePlanModelRef,
   DomainContextRef,
   RecentProject,

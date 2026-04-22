@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron'
 import type { BackendContract, NewProjectParams, Project, RecoveryChoice } from '../backend/contract'
+import type { LocalBackend } from '../backend/localBackend'
 import { FutureVersionError, MigrationError, CorruptFileError } from '../storage/storageErrors'
 import { scanForRecoveryOptions, applyRecovery } from '../storage/crashRecovery'
 
@@ -98,5 +99,15 @@ export function registerProjectHandlers(backend: BackendContract): void {
 
   ipcMain.handle('project:applyRecovery', (_event, choice: RecoveryChoice) => {
     return applyRecovery(choice)
+  })
+
+  const local = backend as LocalBackend
+
+  ipcMain.handle('project:listBackups', (_event, filePath: string) => {
+    return local.listBackups(filePath)
+  })
+
+  ipcMain.handle('project:openFromBackup', (_event, projectPath: string, backupFilePath: string) => {
+    return wrapHandler(() => local.openFromBackup(projectPath, backupFilePath))
   })
 }

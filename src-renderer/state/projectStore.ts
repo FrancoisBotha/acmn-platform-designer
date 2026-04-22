@@ -3,6 +3,12 @@ import { nanoid } from 'nanoid'
 import type { Project, RecentProject } from '@/contracts/backend'
 import { useCanvasStore } from './canvasStore'
 
+export interface MigrationToastInfo {
+  fromVersion: string
+  toVersion: string
+  backupPath: string
+}
+
 export interface ProjectState {
   currentProject: Project | null
   dirty: boolean
@@ -11,12 +17,14 @@ export interface ProjectState {
   recentProjects: RecentProject[]
   loading: boolean
   error: string | null
+  pendingMigrationToast: MigrationToastInfo | null
 
   setCurrentProject: (project: Project | null) => void
   setDirty: (dirty: boolean) => void
   setRecentProjects: (projects: RecentProject[]) => void
   setLoading: (loading: boolean) => void
   setError: (error: string | null) => void
+  setPendingMigrationToast: (info: MigrationToastInfo | null) => void
   clearProject: () => void
   saveProject: () => Promise<void>
   saveProjectAs: () => Promise<void>
@@ -42,6 +50,7 @@ export const useProjectStore = create<ProjectState>()((set, get) => ({
   recentProjects: [],
   loading: false,
   error: null,
+  pendingMigrationToast: null,
 
   setCurrentProject: (project) =>
     set({
@@ -54,8 +63,9 @@ export const useProjectStore = create<ProjectState>()((set, get) => ({
   setRecentProjects: (projects) => set({ recentProjects: projects }),
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error }),
+  setPendingMigrationToast: (info) => set({ pendingMigrationToast: info }),
   clearProject: () =>
-    set({ currentProject: null, dirty: false, activeCpmId: null, activeCpmFile: null }),
+    set({ currentProject: null, dirty: false, activeCpmId: null, activeCpmFile: null, pendingMigrationToast: null }),
 
   saveProject: async () => {
     const project = get().currentProject

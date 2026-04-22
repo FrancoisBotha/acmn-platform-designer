@@ -43,6 +43,7 @@ import {
 import { WelcomeScreen } from '@/features/welcome/WelcomeScreen'
 import { TopBar } from '@/components/TopBar'
 import { DirtyCheckDialog } from '@/components/DirtyCheckDialog'
+import { MigrationToast } from '@/components/MigrationToast'
 import { SelectionBadge } from '@/components/SelectionBadge'
 import { TestPlaceholder } from '@/features/test/TestPlaceholder'
 import { PublishPlaceholder } from '@/features/publish/PublishPlaceholder'
@@ -341,6 +342,8 @@ function ProjectShell() {
   const clearProject = useProjectStore((s) => s.clearProject)
   const currentProject = useProjectStore((s) => s.currentProject)
   const activeCpmFile = useProjectStore((s) => s.activeCpmFile)
+  const pendingMigrationToast = useProjectStore((s) => s.pendingMigrationToast)
+  const setPendingMigrationToast = useProjectStore((s) => s.setPendingMigrationToast)
 
   useEffect(() => {
     if (!currentProject) return
@@ -396,6 +399,13 @@ function ProjectShell() {
           onSave={handleDirtySave}
           onDiscard={handleDirtyDiscard}
           onCancel={handleDirtyCancel}
+        />
+      )}
+
+      {pendingMigrationToast && (
+        <MigrationToast
+          info={pendingMigrationToast}
+          onDismiss={() => setPendingMigrationToast(null)}
         />
       )}
     </div>

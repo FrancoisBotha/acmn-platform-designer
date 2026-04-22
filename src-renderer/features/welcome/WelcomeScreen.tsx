@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import type { RecentProject } from '@/contracts/backend'
 import { useProjectStore } from '@/state/projectStore'
 import { NewProjectWizard } from '@/features/newProject/NewProjectWizard'
+import { FutureVersionDialog } from '@/components/FutureVersionDialog'
+import { CorruptFileDialog } from '@/components/CorruptFileDialog'
 
 function formatRelativeTime(dateStr: string): string {
   const date = new Date(dateStr)
@@ -19,58 +21,140 @@ function formatRelativeTime(dateStr: string): string {
   return date.toLocaleDateString()
 }
 
+interface ParsedStorageError {
+  name: string
+  message: string
+  filePath?: string
+  fileVersion?: string
+  appVersion?: string
+  cause?: string
+}
+
+function parseIpcError(err: unknown): ParsedStorageError | null {
+  if (!(err instanceof Error)) return null
+  try {
+    const detail = JSON.parse(err.message) as ParsedStorageError
+    if (detail && typeof detail.name === 'string') return detail
+  } catch {
+    // not a serialized storage error
+  }
+  return null
+}
+
+function extractFileName(filePath: string): string {
+  const parts = filePath.replace(/\\/g, '/').split('/')
+  return parts[parts.length - 1] || filePath
+}
+
+function extractProjectPath(filePath: string): string {
+  const normalized = filePath.replace(/\\/g, '/')
+  const idx = normalized.lastIndexOf('/')
+  return idx >= 0 ? filePath.substring(0, idx) : filePath
+}
+
+interface FutureVersionState {
+  fileVersion: string
+}
+
+interface CorruptFileState {
+  fileName: string
+  filePath: string
+  errorMessage: string
+  projectPath: string
+}
+
 interface OpenProjectError {
   path: string | null
   message: string
 }
 
 export function WelcomeScreen() {
-  const { recentProjects, setRecentProjects, setCurrentProject, setLoading } = useProjectStore()
+  const { recentProjects, setRecentProjects, setCurrentProject, setLoading, setPendingMigrationToast } = useProjectStore()
   const [showNewProject, setShowNewProject] = useState(false)
   const [openError, setOpenError] = useState<OpenProjectError | null>(null)
+  const [futureVersionState, setFutureVersionState] = useState<FutureVersionState | null>(null)
+  const [corruptFileState, setCorruptFileState] = useState<CorruptFileState | null>(null)
 
   useEffect(() => {
     window.acmn.project.listRecent().then(setRecentProjects).catch(() => {})
   }, [setRecentProjects])
 
-  async function handleOpenProject() {
-    setOpenError(null)
-    const folderPath = await window.acmn.dialog.openFolder()
-    if (!folderPath) return
+  function handleOpenError(err: unknown, folderPath: string) {
+    const parsed = parseIpcError(err)
+    if (!parsed) {
+      setOpenError({ path: folderPath, message: 'Folder is not a valid ACMN project' })
+      return
+    }
 
+    if (parsed.name === 'FutureVersionError') {
+      setFutureVersionState({ fileVersion: parsed.fileVersion ?? 'unknown' })
+      return
+    }
+
+    if (parsed.name === 'CorruptFileError') {
+      const filePath = parsed.filePath ?? ''
+      setCorruptFileState({
+        fileName: extractFileName(filePath),
+        filePath,
+        errorMessage: parsed.cause ?? parsed.message,
+        projectPath: folderPath,
+      })
+      return
+    }
+
+    setOpenError({ path: folderPath, message: parsed.message || 'Could not open project' })
+  }
+
+  async function handleOpenResult(promise: Promise<unknown>, folderPath: string) {
+    setOpenError(null)
+    setFutureVersionState(null)
+    setCorruptFileState(null)
     setLoading(true)
     try {
-      const project = await window.acmn.project.open(folderPath)
-      setCurrentProject(project)
-    } catch {
-      setOpenError({
-        path: folderPath,
-        message: 'Folder is not a valid ACMN project',
-      })
+      const result = await promise as { project: unknown; migrationApplied?: { fromVersion: string; toVersion: string; backupPath: string } }
+      setCurrentProject(result.project as import('@/contracts/backend').Project)
+      if (result.migrationApplied) {
+        setPendingMigrationToast(result.migrationApplied)
+      }
+    } catch (err) {
+      handleOpenError(err, folderPath)
     } finally {
       setLoading(false)
     }
   }
 
-  async function handleOpenRecent(path: string) {
+  async function handleOpenProject() {
     setOpenError(null)
-    setLoading(true)
-    try {
-      const project = await window.acmn.project.open(path)
-      setCurrentProject(project)
-    } catch {
-      setOpenError({
-        path,
-        message: 'Folder is not a valid ACMN project',
-      })
-    } finally {
-      setLoading(false)
-    }
+    const folderPath = await window.acmn.dialog.openFolder()
+    if (!folderPath) return
+    await handleOpenResult(window.acmn.project.open(folderPath), folderPath)
+  }
+
+  async function handleOpenRecent(path: string) {
+    await handleOpenResult(window.acmn.project.open(path), path)
   }
 
   async function handleChooseAnother() {
     setOpenError(null)
     await handleOpenProject()
+  }
+
+  function handleFutureVersionClose() {
+    setFutureVersionState(null)
+  }
+
+  function handleCorruptCancel() {
+    setCorruptFileState(null)
+  }
+
+  async function handleCorruptOpenBackup(backupPath: string) {
+    if (!corruptFileState) return
+    const projectPath = corruptFileState.projectPath
+    setCorruptFileState(null)
+    await handleOpenResult(
+      window.acmn.project.openFromBackup(projectPath, backupPath),
+      projectPath
+    )
   }
 
   return (
@@ -186,6 +270,24 @@ export function WelcomeScreen() {
 
       {showNewProject && (
         <NewProjectWizard onClose={() => setShowNewProject(false)} />
+      )}
+
+      {futureVersionState && (
+        <FutureVersionDialog
+          fileVersion={futureVersionState.fileVersion}
+          onClose={handleFutureVersionClose}
+        />
+      )}
+
+      {corruptFileState && (
+        <CorruptFileDialog
+          fileName={corruptFileState.fileName}
+          filePath={corruptFileState.filePath}
+          errorMessage={corruptFileState.errorMessage}
+          projectPath={corruptFileState.projectPath}
+          onOpenBackup={handleCorruptOpenBackup}
+          onCancel={handleCorruptCancel}
+        />
       )}
     </div>
   )
