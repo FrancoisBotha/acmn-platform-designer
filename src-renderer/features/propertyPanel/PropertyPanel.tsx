@@ -9,6 +9,9 @@ import { AgentProperties } from './AgentProperties'
 import { ToolProperties } from './ToolProperties'
 import { GuardrailProperties } from './GuardrailProperties'
 import { EvaluatorProperties } from './EvaluatorProperties'
+import { StageProperties } from './StageProperties'
+import { MilestoneProperties } from './MilestoneProperties'
+import { HumanTaskProperties } from './HumanTaskProperties'
 
 const DEFAULT_WIDTH = 400
 const MIN_WIDTH = 200
@@ -148,6 +151,9 @@ const typedPanels: Record<string, React.ComponentType<{ node: Node }>> = {
   tool: ToolProperties,
   guardrail: GuardrailProperties,
   evaluator: EvaluatorProperties,
+  stage: StageProperties,
+  'cmmn-milestone': MilestoneProperties,
+  'human-task': HumanTaskProperties,
 }
 
 function NodeProperties({ node }: { node: Node }) {
