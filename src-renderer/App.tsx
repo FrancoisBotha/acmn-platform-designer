@@ -64,7 +64,7 @@ import { DirtyCheckDialog } from '@/components/DirtyCheckDialog'
 import { MigrationToast } from '@/components/MigrationToast'
 import { RecoveryDialog } from '@/components/RecoveryDialog'
 import { SelectionBadge } from '@/components/SelectionBadge'
-import { WireProperties } from '@/features/propertyPanel/WireProperties'
+import { PropertyPanel } from '@/features/propertyPanel/PropertyPanel'
 import { TestPlaceholder } from '@/features/test/TestPlaceholder'
 import { PublishPlaceholder } from '@/features/publish/PublishPlaceholder'
 import { ProjectTree } from '@/features/canvas/panels/ProjectTree'
@@ -543,16 +543,7 @@ function DesignCanvas() {
         )}
       </main>
 
-      <aside className="w-72 shrink-0 border-l border-border bg-muted/40 p-4">
-        <h2 className="mb-3 text-sm font-semibold tracking-tight">Properties</h2>
-        {(() => {
-          const selectedEdge = edges.find((e) => e.selected)
-          if (selectedEdge) {
-            return <WireProperties edge={selectedEdge} />
-          }
-          return <p className="text-xs text-muted-foreground">Select a node or wire to view its properties</p>
-        })()}
-      </aside>
+      <PropertyPanel />
     </div>
   )
 }
