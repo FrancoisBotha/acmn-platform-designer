@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from 'react'
 import type { Node } from '@xyflow/react'
 import { useCanvasStore } from '@/state/canvasStore'
 import { UpdateElementPropertiesCommand } from '@/state/commands'
+import { FieldLabel } from './HelpTooltip'
 
 const CONNECTOR_TYPES = [
   { value: 'email', label: 'Email' },
@@ -16,12 +17,11 @@ const CONNECTOR_TYPES = [
 type ConnectorType = (typeof CONNECTOR_TYPES)[number]['value']
 
 const inputClass = 'w-full rounded border border-border bg-background px-2 py-1 text-sm'
-const labelClass = 'block text-xs font-medium mb-1'
 
-function FieldGroup({ label, children }: { label: string; children: React.ReactNode }) {
+function FieldGroup({ label, tooltip, children }: { label: string; tooltip?: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className={labelClass}>{label}</label>
+      <FieldLabel label={label} tooltip={tooltip} />
       {children}
     </div>
   )
@@ -36,7 +36,7 @@ function EmailSubForm({
 }) {
   return (
     <>
-      <FieldGroup label="SMTP Host">
+      <FieldGroup label="SMTP Host" tooltip="Hostname of the SMTP server for sending email">
         <input
           className={inputClass}
           value={(config.smtpHost as string) ?? ''}
@@ -44,7 +44,7 @@ function EmailSubForm({
           onChange={(e) => onChange({ smtpHost: e.target.value })}
         />
       </FieldGroup>
-      <FieldGroup label="SMTP Port">
+      <FieldGroup label="SMTP Port" tooltip="Port number for the SMTP connection (commonly 587 or 465)">
         <input
           type="number"
           className={inputClass}
@@ -54,7 +54,7 @@ function EmailSubForm({
           onChange={(e) => onChange({ smtpPort: parseInt(e.target.value, 10) || 587 })}
         />
       </FieldGroup>
-      <FieldGroup label="Auth Method">
+      <FieldGroup label="Auth Method" tooltip="Authentication method used to connect to the SMTP server">
         <select
           className={inputClass}
           value={(config.authMethod as string) ?? 'none'}
@@ -66,7 +66,7 @@ function EmailSubForm({
           <option value="oauth2">OAuth2</option>
         </select>
       </FieldGroup>
-      <FieldGroup label="Username">
+      <FieldGroup label="Username" tooltip="Username or email address for SMTP authentication">
         <input
           className={inputClass}
           value={(config.username as string) ?? ''}
@@ -74,7 +74,7 @@ function EmailSubForm({
           onChange={(e) => onChange({ username: e.target.value })}
         />
       </FieldGroup>
-      <FieldGroup label="Use TLS">
+      <FieldGroup label="Use TLS" tooltip="Whether to encrypt the SMTP connection with TLS">
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
@@ -97,7 +97,7 @@ function WebhookSubForm({
 }) {
   return (
     <>
-      <FieldGroup label="URL">
+      <FieldGroup label="URL" tooltip="The webhook endpoint URL that will receive incoming signals">
         <input
           className={inputClass}
           value={(config.url as string) ?? ''}
@@ -105,7 +105,7 @@ function WebhookSubForm({
           onChange={(e) => onChange({ url: e.target.value })}
         />
       </FieldGroup>
-      <FieldGroup label="HTTP Method">
+      <FieldGroup label="HTTP Method" tooltip="HTTP method used when calling the webhook endpoint">
         <select
           className={inputClass}
           value={(config.method as string) ?? 'POST'}
@@ -117,7 +117,7 @@ function WebhookSubForm({
           <option value="PATCH">PATCH</option>
         </select>
       </FieldGroup>
-      <FieldGroup label="Headers (JSON)">
+      <FieldGroup label="Headers (JSON)" tooltip="Custom HTTP headers sent with webhook requests as a JSON object">
         <textarea
           className={`${inputClass} resize-y min-h-[60px]`}
           value={(config.headers as string) ?? ''}
@@ -125,7 +125,7 @@ function WebhookSubForm({
           onChange={(e) => onChange({ headers: e.target.value })}
         />
       </FieldGroup>
-      <FieldGroup label="Secret Token">
+      <FieldGroup label="Secret Token" tooltip="Shared secret used to verify the authenticity of webhook payloads">
         <input
           className={inputClass}
           type="password"
@@ -147,7 +147,7 @@ function FileWatchSubForm({
 }) {
   return (
     <>
-      <FieldGroup label="Watch Path">
+      <FieldGroup label="Watch Path" tooltip="Filesystem directory path to monitor for new or changed files">
         <input
           className={inputClass}
           value={(config.watchPath as string) ?? ''}
@@ -155,7 +155,7 @@ function FileWatchSubForm({
           onChange={(e) => onChange({ watchPath: e.target.value })}
         />
       </FieldGroup>
-      <FieldGroup label="File Pattern">
+      <FieldGroup label="File Pattern" tooltip="Glob pattern to filter which files trigger the connector (e.g. *.csv)">
         <input
           className={inputClass}
           value={(config.filePattern as string) ?? ''}
@@ -163,7 +163,7 @@ function FileWatchSubForm({
           onChange={(e) => onChange({ filePattern: e.target.value })}
         />
       </FieldGroup>
-      <FieldGroup label="Recursive">
+      <FieldGroup label="Recursive" tooltip="Whether to watch subdirectories within the watch path">
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
@@ -173,7 +173,7 @@ function FileWatchSubForm({
           Watch subdirectories
         </label>
       </FieldGroup>
-      <FieldGroup label="Polling Interval (s)">
+      <FieldGroup label="Polling Interval (s)" tooltip="How often (in seconds) the directory is checked for changes">
         <input
           type="number"
           className={inputClass}
@@ -195,7 +195,7 @@ function ScheduleSubForm({
 }) {
   return (
     <>
-      <FieldGroup label="Cron Expression">
+      <FieldGroup label="Cron Expression" tooltip="Cron schedule expression defining when signals are emitted (e.g. 0 */5 * * *)">
         <input
           className={inputClass}
           value={(config.cronExpression as string) ?? ''}
@@ -203,7 +203,7 @@ function ScheduleSubForm({
           onChange={(e) => onChange({ cronExpression: e.target.value })}
         />
       </FieldGroup>
-      <FieldGroup label="Timezone">
+      <FieldGroup label="Timezone" tooltip="IANA timezone for evaluating the cron expression (e.g. UTC, America/New_York)">
         <input
           className={inputClass}
           value={(config.timezone as string) ?? ''}
@@ -211,7 +211,7 @@ function ScheduleSubForm({
           onChange={(e) => onChange({ timezone: e.target.value })}
         />
       </FieldGroup>
-      <FieldGroup label="Start Date">
+      <FieldGroup label="Start Date" tooltip="Earliest date on which this schedule becomes active">
         <input
           type="date"
           className={inputClass}
@@ -219,7 +219,7 @@ function ScheduleSubForm({
           onChange={(e) => onChange({ startDate: e.target.value })}
         />
       </FieldGroup>
-      <FieldGroup label="End Date">
+      <FieldGroup label="End Date" tooltip="Date after which this schedule stops emitting signals">
         <input
           type="date"
           className={inputClass}
@@ -240,7 +240,7 @@ function DatabaseSubForm({
 }) {
   return (
     <>
-      <FieldGroup label="Connection String">
+      <FieldGroup label="Connection String" tooltip="Database connection URI including host, port, and database name">
         <input
           className={inputClass}
           value={(config.connectionString as string) ?? ''}
@@ -248,7 +248,7 @@ function DatabaseSubForm({
           onChange={(e) => onChange({ connectionString: e.target.value })}
         />
       </FieldGroup>
-      <FieldGroup label="Database Type">
+      <FieldGroup label="Database Type" tooltip="The type of database to connect to">
         <select
           className={inputClass}
           value={(config.dbType as string) ?? 'postgresql'}
@@ -261,7 +261,7 @@ function DatabaseSubForm({
           <option value="sqlite">SQLite</option>
         </select>
       </FieldGroup>
-      <FieldGroup label="Query / Collection">
+      <FieldGroup label="Query / Collection" tooltip="SQL query or collection name used to poll for new data">
         <textarea
           className={`${inputClass} resize-y min-h-[60px]`}
           value={(config.query as string) ?? ''}
@@ -269,7 +269,7 @@ function DatabaseSubForm({
           onChange={(e) => onChange({ query: e.target.value })}
         />
       </FieldGroup>
-      <FieldGroup label="Poll Interval (s)">
+      <FieldGroup label="Poll Interval (s)" tooltip="How often (in seconds) the database is queried for new records">
         <input
           type="number"
           className={inputClass}
@@ -291,7 +291,7 @@ function EventSubForm({
 }) {
   return (
     <>
-      <FieldGroup label="Event Source">
+      <FieldGroup label="Event Source" tooltip="The source system or application emitting events">
         <input
           className={inputClass}
           value={(config.eventSource as string) ?? ''}
@@ -299,7 +299,7 @@ function EventSubForm({
           onChange={(e) => onChange({ eventSource: e.target.value })}
         />
       </FieldGroup>
-      <FieldGroup label="Event Type">
+      <FieldGroup label="Event Type" tooltip="The specific event type to listen for (e.g. order.created)">
         <input
           className={inputClass}
           value={(config.eventType as string) ?? ''}
@@ -307,7 +307,7 @@ function EventSubForm({
           onChange={(e) => onChange({ eventType: e.target.value })}
         />
       </FieldGroup>
-      <FieldGroup label="Channel / Topic">
+      <FieldGroup label="Channel / Topic" tooltip="Message broker channel or topic to subscribe to">
         <input
           className={inputClass}
           value={(config.channel as string) ?? ''}
@@ -315,7 +315,7 @@ function EventSubForm({
           onChange={(e) => onChange({ channel: e.target.value })}
         />
       </FieldGroup>
-      <FieldGroup label="Consumer Group">
+      <FieldGroup label="Consumer Group" tooltip="Consumer group name for coordinated event consumption">
         <input
           className={inputClass}
           value={(config.consumerGroup as string) ?? ''}
@@ -336,7 +336,7 @@ function ApiSubForm({
 }) {
   return (
     <>
-      <FieldGroup label="Base URL">
+      <FieldGroup label="Base URL" tooltip="The root URL of the API including version prefix">
         <input
           className={inputClass}
           value={(config.baseUrl as string) ?? ''}
@@ -344,7 +344,7 @@ function ApiSubForm({
           onChange={(e) => onChange({ baseUrl: e.target.value })}
         />
       </FieldGroup>
-      <FieldGroup label="Endpoint Path">
+      <FieldGroup label="Endpoint Path" tooltip="Path appended to the base URL for this connector's requests">
         <input
           className={inputClass}
           value={(config.endpointPath as string) ?? ''}
@@ -352,7 +352,7 @@ function ApiSubForm({
           onChange={(e) => onChange({ endpointPath: e.target.value })}
         />
       </FieldGroup>
-      <FieldGroup label="HTTP Method">
+      <FieldGroup label="HTTP Method" tooltip="HTTP method used for API requests">
         <select
           className={inputClass}
           value={(config.method as string) ?? 'GET'}
@@ -365,7 +365,7 @@ function ApiSubForm({
           <option value="DELETE">DELETE</option>
         </select>
       </FieldGroup>
-      <FieldGroup label="Auth Type">
+      <FieldGroup label="Auth Type" tooltip="Authentication mechanism used to authorize API requests">
         <select
           className={inputClass}
           value={(config.authType as string) ?? 'none'}
@@ -378,7 +378,7 @@ function ApiSubForm({
           <option value="oauth2">OAuth2</option>
         </select>
       </FieldGroup>
-      <FieldGroup label="Headers (JSON)">
+      <FieldGroup label="Headers (JSON)" tooltip="Custom HTTP headers sent with every request as a JSON object">
         <textarea
           className={`${inputClass} resize-y min-h-[60px]`}
           value={(config.headers as string) ?? ''}
@@ -386,7 +386,7 @@ function ApiSubForm({
           onChange={(e) => onChange({ headers: e.target.value })}
         />
       </FieldGroup>
-      <FieldGroup label="Rate Limit (req/min)">
+      <FieldGroup label="Rate Limit (req/min)" tooltip="Maximum number of requests per minute to avoid exceeding API limits">
         <input
           type="number"
           className={inputClass}
@@ -494,7 +494,7 @@ export function ConnectorProperties({ node }: { node: Node }) {
 
   return (
     <div className="space-y-4">
-      <FieldGroup label="Connector Type">
+      <FieldGroup label="Connector Type" tooltip="The integration channel this connector uses to receive or send signals">
         <select
           className={inputClass}
           value={connectorType}
@@ -522,7 +522,7 @@ export function ConnectorProperties({ node }: { node: Node }) {
           Signal Processing
         </p>
         <div className="space-y-3">
-          <FieldGroup label="Filter Rules">
+          <FieldGroup label="Filter Rules" tooltip="Expression or JSON rules that filter which incoming signals are processed">
             <textarea
               className={`${inputClass} resize-y min-h-[60px]`}
               value={filterRules}
@@ -531,7 +531,7 @@ export function ConnectorProperties({ node }: { node: Node }) {
             />
           </FieldGroup>
 
-          <FieldGroup label="Field Mapping">
+          <FieldGroup label="Field Mapping" tooltip="JSON mapping from source fields to target case-file item fields">
             <textarea
               className={`${inputClass} resize-y min-h-[60px]`}
               value={fieldMapping}
@@ -540,7 +540,7 @@ export function ConnectorProperties({ node }: { node: Node }) {
             />
           </FieldGroup>
 
-          <FieldGroup label="Target Case Plan Model">
+          <FieldGroup label="Target Case Plan Model" tooltip="The case plan model that receives signals from this connector">
             <input
               className={inputClass}
               value={targetCpm}
@@ -549,7 +549,7 @@ export function ConnectorProperties({ node }: { node: Node }) {
             />
           </FieldGroup>
 
-          <FieldGroup label="Daily Signal Limit">
+          <FieldGroup label="Daily Signal Limit" tooltip="Maximum number of signals this connector may process per day (0 = unlimited)">
             <input
               type="number"
               className={inputClass}
@@ -559,7 +559,7 @@ export function ConnectorProperties({ node }: { node: Node }) {
             />
           </FieldGroup>
 
-          <FieldGroup label="Active">
+          <FieldGroup label="Active" tooltip="Whether this connector is currently accepting and processing signals">
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"

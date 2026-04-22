@@ -3,6 +3,7 @@ import type { Node } from '@xyflow/react'
 import { useCanvasStore } from '@/state/canvasStore'
 import { UpdateElementPropertiesCommand } from '@/state/commands'
 import { MonacoField } from './MonacoField'
+import { FieldLabel } from './HelpTooltip'
 
 const invocationPolicyOptions = [
   { value: 'auto', label: 'Auto' },
@@ -31,7 +32,7 @@ export function ToolProperties({ node }: { node: Node }) {
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-xs font-medium mb-1">Tool ID</label>
+        <FieldLabel label="Tool ID" tooltip="Unique identifier for this tool within the case plan model" />
         <input
           className="w-full rounded border border-border bg-muted px-2 py-1 text-xs font-mono"
           value={toolId}
@@ -40,7 +41,7 @@ export function ToolProperties({ node }: { node: Node }) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium mb-1">Name</label>
+        <FieldLabel label="Name" tooltip="Display name for this tool as shown on the canvas and in agent tool lists" />
         <input
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
           value={name}
@@ -49,7 +50,7 @@ export function ToolProperties({ node }: { node: Node }) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium mb-1">Description</label>
+        <FieldLabel label="Description" tooltip="A brief explanation of what this tool does and when it should be invoked" />
         <textarea
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm resize-y min-h-[60px]"
           value={description}
@@ -59,7 +60,7 @@ export function ToolProperties({ node }: { node: Node }) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium mb-1">Input Schema</label>
+        <FieldLabel label="Input Schema" tooltip="JSON schema defining the expected input parameters for this tool" />
         <MonacoField
           value={inputSchema}
           onChange={(v) => updateProp({ inputSchema: v })}
@@ -69,7 +70,7 @@ export function ToolProperties({ node }: { node: Node }) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium mb-1">Output Schema</label>
+        <FieldLabel label="Output Schema" tooltip="JSON schema defining the structure of this tool's output" />
         <MonacoField
           value={outputSchema}
           onChange={(v) => updateProp({ outputSchema: v })}
@@ -79,7 +80,7 @@ export function ToolProperties({ node }: { node: Node }) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium mb-1">Invocation Policy</label>
+        <FieldLabel label="Invocation Policy" tooltip="Controls whether the tool runs automatically or requires human confirmation" />
         <select
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
           value={invocationPolicy}

@@ -3,6 +3,7 @@ import type { Node } from '@xyflow/react'
 import { Plus, Trash2 } from 'lucide-react'
 import { useCanvasStore } from '@/state/canvasStore'
 import { UpdateElementPropertiesCommand } from '@/state/commands'
+import { FieldLabel } from './HelpTooltip'
 
 const evaluatorTypeOptions = [
   { value: 'llm_judge', label: 'LLM Judge' },
@@ -71,7 +72,7 @@ export function EvaluatorProperties({ node }: { node: Node }) {
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-xs font-medium mb-1">Evaluator Type</label>
+        <FieldLabel label="Evaluator Type" tooltip="The evaluation method used to assess agent output quality" />
         <select
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
           value={evaluatorType}
@@ -85,7 +86,7 @@ export function EvaluatorProperties({ node }: { node: Node }) {
 
       <div>
         <div className="flex items-center justify-between mb-1">
-          <label className="text-xs font-medium">Criteria</label>
+          <FieldLabel label="Criteria" tooltip="Evaluation criteria with individual weights and pass/fail thresholds" />
           <button
             className="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs hover:bg-accent text-muted-foreground"
             onClick={addCriterion}
@@ -147,7 +148,7 @@ export function EvaluatorProperties({ node }: { node: Node }) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium mb-1">Max Retries</label>
+        <FieldLabel label="Max Retries" tooltip="Maximum number of retry attempts before the on-exhausted policy takes effect" />
         <input
           type="number"
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
@@ -159,7 +160,7 @@ export function EvaluatorProperties({ node }: { node: Node }) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium mb-1">On Exhausted Policy</label>
+        <FieldLabel label="On Exhausted Policy" tooltip="What happens when all retries are exhausted without a passing evaluation" />
         <select
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
           value={onExhaustedPolicy}
@@ -172,7 +173,7 @@ export function EvaluatorProperties({ node }: { node: Node }) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium mb-1">Port Configuration</label>
+        <FieldLabel label="Port Configuration" tooltip="Labels for the feedback and escalation output ports" />
         <div className="space-y-2 rounded border border-border bg-muted/30 p-3">
           <div className="flex items-center gap-2">
             <span className="inline-block w-2 h-2 rounded-full bg-blue-500 shrink-0" />

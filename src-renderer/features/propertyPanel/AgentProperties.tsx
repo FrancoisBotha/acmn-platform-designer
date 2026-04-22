@@ -3,6 +3,7 @@ import type { Node } from '@xyflow/react'
 import { Plus, Trash2 } from 'lucide-react'
 import { useCanvasStore } from '@/state/canvasStore'
 import { UpdateElementPropertiesCommand, RemoveWireCommand, BatchCommand } from '@/state/commands'
+import { FieldLabel } from './HelpTooltip'
 
 const MonacoEditor = lazy(() => import('@monaco-editor/react'))
 
@@ -112,22 +113,6 @@ function TabBar({
 }
 
 // --- Shared field components ---
-
-function FieldLabel({ label, tooltip }: { label: string; tooltip?: string }) {
-  return (
-    <label className="flex items-center gap-1 text-xs font-medium mb-1">
-      {label}
-      {tooltip && (
-        <span
-          className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-muted text-[10px] cursor-help"
-          title={tooltip}
-        >
-          i
-        </span>
-      )}
-    </label>
-  )
-}
 
 function TextInput({
   label,

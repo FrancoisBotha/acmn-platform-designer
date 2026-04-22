@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import type { Node } from '@xyflow/react'
 import { useCanvasStore } from '@/state/canvasStore'
 import { UpdateElementPropertiesCommand } from '@/state/commands'
+import { FieldLabel } from './HelpTooltip'
 
 const cognitiveModeOptions = [
   { value: 'gather', label: 'Gather' },
@@ -49,7 +50,7 @@ export function StageProperties({ node }: { node: Node }) {
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-xs font-medium mb-1">Stage Name</label>
+        <FieldLabel label="Stage Name" tooltip="Display name for this stage in the case plan" />
         <input
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
           value={stageName}
@@ -58,7 +59,7 @@ export function StageProperties({ node }: { node: Node }) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium mb-1">Cognitive Mode</label>
+        <FieldLabel label="Cognitive Mode" tooltip="The type of cognitive work performed within this stage" />
         <select
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
           value={cognitiveMode}
@@ -71,7 +72,7 @@ export function StageProperties({ node }: { node: Node }) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium mb-1">Entry Sentry</label>
+        <FieldLabel label="Entry Sentry" tooltip="Expression that must evaluate to true for this stage to activate" />
         <textarea
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm resize-y min-h-[60px] font-mono"
           value={entrySentry}
@@ -81,7 +82,7 @@ export function StageProperties({ node }: { node: Node }) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium mb-1">Exit Sentry</label>
+        <FieldLabel label="Exit Sentry" tooltip="Expression that must evaluate to true for this stage to complete" />
         <textarea
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm resize-y min-h-[60px] font-mono"
           value={exitSentry}
@@ -91,7 +92,7 @@ export function StageProperties({ node }: { node: Node }) {
       </div>
 
       <fieldset>
-        <legend className="block text-xs font-medium mb-1">Decorators</legend>
+        <FieldLabel label="Decorators" tooltip="CMMN plan-item decorators that control this stage's lifecycle behaviour" />
         <div className="space-y-1.5">
           {decoratorOptions.map((opt) => (
             <label key={opt.value} className="flex items-center gap-2 text-sm">

@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import type { Node } from '@xyflow/react'
 import { useCanvasStore } from '@/state/canvasStore'
 import { UpdateElementPropertiesCommand } from '@/state/commands'
+import { FieldLabel } from './HelpTooltip'
 
 const criteriaTypeOptions = [
   { value: 'expression', label: 'Expression' },
@@ -28,7 +29,7 @@ export function MilestoneProperties({ node }: { node: Node }) {
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-xs font-medium mb-1">Milestone Name</label>
+        <FieldLabel label="Milestone Name" tooltip="Display name for this milestone in the case plan" />
         <input
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
           value={milestoneName}
@@ -37,7 +38,7 @@ export function MilestoneProperties({ node }: { node: Node }) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium mb-1">Criteria Type</label>
+        <FieldLabel label="Criteria Type" tooltip="How this milestone's completion is determined (expression, manual, or event)" />
         <select
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
           value={criteriaType}
@@ -50,7 +51,7 @@ export function MilestoneProperties({ node }: { node: Node }) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium mb-1">Criteria Expression</label>
+        <FieldLabel label="Criteria Expression" tooltip="The expression evaluated to determine whether this milestone is achieved" />
         <textarea
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm resize-y min-h-[60px] font-mono"
           value={criteriaExpression}
@@ -60,7 +61,7 @@ export function MilestoneProperties({ node }: { node: Node }) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium mb-1">Revocation Condition</label>
+        <FieldLabel label="Revocation Condition" tooltip="Expression that, when true, revokes this milestone's achieved status" />
         <textarea
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm resize-y min-h-[60px] font-mono"
           value={revocationCondition}

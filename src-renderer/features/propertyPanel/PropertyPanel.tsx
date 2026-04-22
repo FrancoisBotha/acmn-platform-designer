@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useCanvasStore } from '@/state/canvasStore'
 import { useProjectStore } from '@/state/projectStore'
 import { acmnElementTypeMap } from '@/lib/acmnElementTypes'
+import { FieldLabel } from './HelpTooltip'
 import { WireProperties } from './WireProperties'
 import { AgentProperties } from './AgentProperties'
 import { ToolProperties } from './ToolProperties'
@@ -107,7 +108,7 @@ function CpmProperties() {
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-xs font-medium mb-1">Case Name</label>
+        <FieldLabel label="Case Name" tooltip="The name of this case plan model" />
         <input
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
           value={cpmName}
@@ -115,7 +116,7 @@ function CpmProperties() {
         />
       </div>
       <div>
-        <label className="block text-xs font-medium mb-1">Version Label</label>
+        <FieldLabel label="Version Label" tooltip="The current version identifier for this case plan model" />
         <input
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
           value="1"
@@ -123,7 +124,7 @@ function CpmProperties() {
         />
       </div>
       <div>
-        <label className="block text-xs font-medium mb-1">Description</label>
+        <FieldLabel label="Description" tooltip="A brief description of the purpose and scope of this case plan" />
         <textarea
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm resize-y min-h-[60px]"
           placeholder="No description"
@@ -131,7 +132,7 @@ function CpmProperties() {
         />
       </div>
       <div>
-        <label className="block text-xs font-medium mb-1">Domain Context Binding</label>
+        <FieldLabel label="Domain Context Binding" tooltip="The domain context linked to this case plan model" />
         <input
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
           value={domainBinding}
@@ -243,7 +244,7 @@ function NodeProperties({ node }: { node: Node }) {
       ) : (
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-medium mb-1">Element Type</label>
+            <FieldLabel label="Element Type" tooltip="The ACMN element type of this node" />
             <input
               className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
               value={acmnElementTypeMap.get(typeId)?.label ?? typeId}
@@ -251,7 +252,7 @@ function NodeProperties({ node }: { node: Node }) {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium mb-1">ID</label>
+            <FieldLabel label="ID" tooltip="Unique identifier for this element within the model" />
             <input
               className="w-full rounded border border-border bg-muted px-2 py-1 text-xs font-mono"
               value={node.id}
@@ -344,6 +345,28 @@ export function PropertyPanel() {
     [collapsed, width],
   )
 
+  const onDragHandleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      const step = e.shiftKey ? 50 : 10
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        setWidth((w) => {
+          const next = Math.min(MAX_WIDTH, w + step)
+          persistWidth(next)
+          return next
+        })
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        setWidth((w) => {
+          const next = Math.max(MIN_WIDTH, w - step)
+          persistWidth(next)
+          return next
+        })
+      }
+    },
+    [],
+  )
+
   useEffect(() => {
     function onMouseMove(e: MouseEvent) {
       if (!dragging.current) return
@@ -394,8 +417,16 @@ export function PropertyPanel() {
       style={{ width }}
     >
       <div
-        className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-ring/50 active:bg-ring/70 z-10"
+        className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-ring/50 active:bg-ring/70 z-10 focus-visible:bg-ring/70 focus-visible:outline-none focus-visible:w-1.5"
         onMouseDown={onMouseDown}
+        onKeyDown={onDragHandleKeyDown}
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize property panel"
+        aria-valuenow={width}
+        aria-valuemin={MIN_WIDTH}
+        aria-valuemax={MAX_WIDTH}
+        tabIndex={0}
       />
       <div className="flex-1 overflow-y-auto p-4 min-w-0">
         <div className="flex items-center justify-between mb-3">

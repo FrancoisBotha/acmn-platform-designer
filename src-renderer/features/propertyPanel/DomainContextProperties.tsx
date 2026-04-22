@@ -3,6 +3,7 @@ import type { Node } from '@xyflow/react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useCanvasStore } from '@/state/canvasStore'
 import { UpdateElementPropertiesCommand } from '@/state/commands'
+import { FieldLabel } from './HelpTooltip'
 
 function getData(node: Node): Record<string, unknown> {
   return node.data as Record<string, unknown>
@@ -146,7 +147,7 @@ export function DomainContextProperties({ node }: { node: Node }) {
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-xs font-medium mb-1">Domain Name</label>
+        <FieldLabel label="Domain Name" tooltip="The name of the domain context bound to this element" />
         <input
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
           value={domainName}
@@ -155,7 +156,7 @@ export function DomainContextProperties({ node }: { node: Node }) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium mb-1">Version</label>
+        <FieldLabel label="Version" tooltip="The version of the domain context definition" />
         <input
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
           value={domainVersion}
@@ -164,7 +165,7 @@ export function DomainContextProperties({ node }: { node: Node }) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium mb-1">Binding Mode</label>
+        <FieldLabel label="Binding Mode" tooltip="Whether this domain context is linked by reference or copied into the model" />
         <div className="flex items-center gap-2">
           <input
             className="w-full rounded border border-border bg-background px-2 py-1 text-sm"

@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import type { Edge } from '@xyflow/react'
 import { useCanvasStore } from '@/state/canvasStore'
 import { UpdateWireCommand } from '@/state/commands'
+import { FieldLabel } from './HelpTooltip'
 
 const wireTypeOptions = [
   { value: 'data', label: 'Data' },
@@ -35,7 +36,7 @@ export function WireProperties({ edge }: { edge: Edge }) {
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-xs font-medium mb-1">Wire Type</label>
+        <FieldLabel label="Wire Type" tooltip="The kind of data or signal this wire carries between nodes" />
         <select
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
           value={wireType}
@@ -48,7 +49,7 @@ export function WireProperties({ edge }: { edge: Edge }) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium mb-1">Buffering Strategy</label>
+        <FieldLabel label="Buffering Strategy" tooltip="How messages are buffered before delivery (immediate, batched, or coalesced)" />
         <select
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
           value={buffering}
@@ -61,8 +62,7 @@ export function WireProperties({ edge }: { edge: Edge }) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium mb-1">Transform</label>
-        {/* TODO: swap for Monaco expression editor when epic_CASE_VARIABLES_AND_SENTRIES_06 delivers it */}
+        <FieldLabel label="Transform" tooltip="Optional expression applied to data as it passes through this wire" />
         <textarea
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm resize-y min-h-[60px]"
           value={transform}
@@ -73,15 +73,7 @@ export function WireProperties({ edge }: { edge: Edge }) {
 
       {wireType === 'confidence-gated' && (
         <div>
-          <label className="block text-xs font-medium mb-1">
-            Confidence Threshold
-            <span
-              className="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-muted text-[10px] cursor-help"
-              title="Applies to the upstream source's confidence output. Messages are only forwarded when the source's confidence score meets or exceeds this threshold."
-            >
-              ?
-            </span>
-          </label>
+          <FieldLabel label="Confidence Threshold" tooltip="Messages are only forwarded when the source's confidence score meets or exceeds this threshold (0-1)" />
           <input
             type="number"
             className="w-full rounded border border-border bg-background px-2 py-1 text-sm"

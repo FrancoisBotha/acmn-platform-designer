@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import type { Node } from '@xyflow/react'
 import { useCanvasStore } from '@/state/canvasStore'
 import { UpdateElementPropertiesCommand } from '@/state/commands'
+import { FieldLabel } from './HelpTooltip'
 
 const decoratorOptions = [
   { value: 'autoComplete', label: 'Auto Complete' },
@@ -61,7 +62,7 @@ export function HumanTaskProperties({ node }: { node: Node }) {
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-xs font-medium mb-1">Task Name</label>
+        <FieldLabel label="Task Name" tooltip="Display name for this human task in the case plan" />
         <input
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
           value={taskName}
@@ -70,7 +71,7 @@ export function HumanTaskProperties({ node }: { node: Node }) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium mb-1">Assignee / Role</label>
+        <FieldLabel label="Assignee / Role" tooltip="The person or role responsible for completing this task" />
         <input
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
           value={assignee}
@@ -80,9 +81,7 @@ export function HumanTaskProperties({ node }: { node: Node }) {
       </div>
 
       <fieldset>
-        <legend className="block text-xs font-medium mb-1">
-          Referenced Case Variables
-        </legend>
+        <FieldLabel label="Referenced Case Variables" tooltip="Case variables included in the generated form for this task" />
         {availableVariables.length === 0 ? (
           <p className="text-xs text-muted-foreground">
             No case variables defined. Add variables to the Case Plan Model to reference them here.
@@ -105,7 +104,7 @@ export function HumanTaskProperties({ node }: { node: Node }) {
       </fieldset>
 
       <div>
-        <label className="block text-xs font-medium mb-1">Conditional Visibility Rules</label>
+        <FieldLabel label="Conditional Visibility Rules" tooltip="Expression controlling when this task is visible to assignees" />
         <textarea
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm resize-y min-h-[60px] font-mono"
           value={visibilityRules}
@@ -115,7 +114,7 @@ export function HumanTaskProperties({ node }: { node: Node }) {
       </div>
 
       <fieldset>
-        <legend className="block text-xs font-medium mb-1">Decorators</legend>
+        <FieldLabel label="Decorators" tooltip="CMMN plan-item decorators that control this task's lifecycle behaviour" />
         <div className="space-y-1.5">
           {decoratorOptions.map((opt) => (
             <label key={opt.value} className="flex items-center gap-2 text-sm">

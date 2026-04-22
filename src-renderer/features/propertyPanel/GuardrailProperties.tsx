@@ -3,6 +3,7 @@ import type { Node } from '@xyflow/react'
 import { useCanvasStore } from '@/state/canvasStore'
 import { UpdateElementPropertiesCommand } from '@/state/commands'
 import { MonacoField } from './MonacoField'
+import { FieldLabel } from './HelpTooltip'
 
 const guardrailTypeOptions = [
   { value: 'content_filter', label: 'Content Filter' },
@@ -39,7 +40,7 @@ export function GuardrailProperties({ node }: { node: Node }) {
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-xs font-medium mb-1">Guardrail Type</label>
+        <FieldLabel label="Guardrail Type" tooltip="The category of safety check this guardrail performs" />
         <select
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
           value={guardrailType}
@@ -52,7 +53,7 @@ export function GuardrailProperties({ node }: { node: Node }) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium mb-1">Rule Definition / Prompt</label>
+        <FieldLabel label="Rule Definition / Prompt" tooltip="The rule expression or prompt that defines what this guardrail checks" />
         <MonacoField
           value={ruleDefinition}
           onChange={(v) => updateProp({ ruleDefinition: v })}
@@ -62,7 +63,7 @@ export function GuardrailProperties({ node }: { node: Node }) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium mb-1">Violation Action</label>
+        <FieldLabel label="Violation Action" tooltip="What happens when this guardrail detects a violation" />
         <select
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
           value={violationAction}
@@ -75,7 +76,7 @@ export function GuardrailProperties({ node }: { node: Node }) {
       </div>
 
       <div>
-        <label className="block text-xs font-medium mb-1">Port Configuration</label>
+        <FieldLabel label="Port Configuration" tooltip="Labels for the pass and fail output ports of this guardrail" />
         <div className="space-y-2 rounded border border-border bg-muted/30 p-3">
           <div className="flex items-center gap-2">
             <span className="inline-block w-2 h-2 rounded-full bg-green-500 shrink-0" />
