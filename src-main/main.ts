@@ -61,6 +61,29 @@ app.whenReady().then(() => {
   createWindow()
 })
 
+let flushingBeforeQuit = false
+
+app.on('before-quit', (e) => {
+  if (flushingBeforeQuit) return
+  if (!mainWindow || mainWindow.isDestroyed()) return
+
+  flushingBeforeQuit = true
+  e.preventDefault()
+
+  const timeout = setTimeout(() => {
+    flushingBeforeQuit = false
+    app.quit()
+  }, 3000)
+
+  ipcMain.once('autosave:flush-done', () => {
+    clearTimeout(timeout)
+    flushingBeforeQuit = false
+    app.quit()
+  })
+
+  mainWindow.webContents.send('autosave:flush-request')
+})
+
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()

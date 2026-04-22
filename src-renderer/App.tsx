@@ -348,6 +348,15 @@ function ProjectShell() {
   const setPendingMigrationToast = useProjectStore((s) => s.setPendingMigrationToast)
 
   useEffect(() => {
+    window.acmn.autoSave.onFlushRequest(() => {
+      useProjectStore
+        .getState()
+        .flushAutoSave()
+        .finally(() => window.acmn.autoSave.flushDone())
+    })
+  }, [])
+
+  useEffect(() => {
     if (!currentProject) return
     const cpmPart = activeCpmFile ? ` · ${activeCpmFile}` : ''
     const dirtyPart = dirty ? ' — modified' : ''

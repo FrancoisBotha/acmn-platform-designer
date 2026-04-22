@@ -79,4 +79,11 @@ contextBridge.exposeInMainWorld('acmn', {
     setTitle: (title: string) =>
       ipcRenderer.invoke('window:setTitle', title),
   },
+
+  autoSave: {
+    onFlushRequest: (callback: () => void) => {
+      ipcRenderer.on('autosave:flush-request', () => callback())
+    },
+    flushDone: () => ipcRenderer.send('autosave:flush-done'),
+  },
 })

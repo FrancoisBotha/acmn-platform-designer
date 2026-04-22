@@ -36,6 +36,10 @@ export interface AcmnApi {
   window: {
     setTitle(title: string): Promise<void>
   }
+  autoSave: {
+    onFlushRequest(callback: () => void): void
+    flushDone(): void
+  }
 }
 
 declare global {
