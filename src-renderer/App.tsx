@@ -64,7 +64,7 @@ import { DirtyCheckDialog } from '@/components/DirtyCheckDialog'
 import { MigrationToast } from '@/components/MigrationToast'
 import { RecoveryDialog } from '@/components/RecoveryDialog'
 import { SelectionBadge } from '@/components/SelectionBadge'
-import { WireProperties } from '@/components/WireProperties'
+import { WireProperties } from '@/features/propertyPanel/WireProperties'
 import { TestPlaceholder } from '@/features/test/TestPlaceholder'
 import { PublishPlaceholder } from '@/features/publish/PublishPlaceholder'
 import { ProjectTree } from '@/features/canvas/panels/ProjectTree'
@@ -115,6 +115,7 @@ function DesignCanvas() {
   const reactFlowInstance = useRef<ReactFlowInstance | null>(null)
   const dragStartPositions = useRef<Map<string, { x: number; y: number }> | null>(null)
   const [edgeContextMenu, setEdgeContextMenu] = useState<{ x: number; y: number; edgeId: string } | null>(null)
+  const [showTypeSubmenu, setShowTypeSubmenu] = useState(false)
 
   const saveProject = useProjectStore((s) => s.saveProject)
   const saveProjectAs = useProjectStore((s) => s.saveProjectAs)
@@ -398,9 +399,52 @@ function DesignCanvas() {
     }
   }, [edgeContextMenu, pushCommand])
 
+  const handleEdgeContextMenuChangeType = useCallback(
+    (wireType: string) => {
+      if (edgeContextMenu) {
+        pushCommand(new UpdateWireCommand(edgeContextMenu.edgeId, { wireType }))
+        setEdgeContextMenu(null)
+      }
+    },
+    [edgeContextMenu, pushCommand],
+  )
+
+  const handleEdgeContextMenuEditTransform = useCallback(() => {
+    if (edgeContextMenu) {
+      applyEdgesChange(
+        edges.map((e) => ({
+          type: 'select' as const,
+          id: e.id,
+          selected: e.id === edgeContextMenu.edgeId,
+        })),
+      )
+      setEdgeContextMenu(null)
+      requestAnimationFrame(() => {
+        const textarea = document.querySelector<HTMLTextAreaElement>('aside textarea')
+        textarea?.focus()
+      })
+    }
+  }, [edgeContextMenu, edges, applyEdgesChange])
+
+  const handleEdgeContextMenuProperties = useCallback(() => {
+    if (edgeContextMenu) {
+      applyEdgesChange(
+        edges.map((e) => ({
+          type: 'select' as const,
+          id: e.id,
+          selected: e.id === edgeContextMenu.edgeId,
+        })),
+      )
+      setEdgeContextMenu(null)
+    }
+  }, [edgeContextMenu, edges, applyEdgesChange])
+
   useEffect(() => {
     if (!edgeContextMenu) return
-    const dismiss = () => setEdgeContextMenu(null)
+    const dismiss = () => {
+      setEdgeContextMenu(null)
+      setShowTypeSubmenu(false)
+    }
     window.addEventListener('click', dismiss)
     return () => window.removeEventListener('click', dismiss)
   }, [edgeContextMenu])
@@ -445,7 +489,7 @@ function DesignCanvas() {
         </ReactFlow>
         {edgeContextMenu && (
           <div
-            className="fixed z-50 min-w-[120px] rounded border border-border bg-popover py-1 shadow-md"
+            className="fixed z-50 min-w-[160px] rounded border border-border bg-popover py-1 shadow-md"
             style={{ left: edgeContextMenu.x, top: edgeContextMenu.y }}
           >
             <button
@@ -453,6 +497,47 @@ function DesignCanvas() {
               onClick={handleEdgeContextMenuDelete}
             >
               Delete
+            </button>
+            <div
+              className="relative"
+              onMouseEnter={() => setShowTypeSubmenu(true)}
+              onMouseLeave={() => setShowTypeSubmenu(false)}
+            >
+              <button className="w-full px-3 py-1.5 text-left text-sm hover:bg-accent flex items-center justify-between">
+                Change type
+                <span className="ml-2 text-xs">&#9656;</span>
+              </button>
+              {showTypeSubmenu && (
+                <div className="absolute left-full top-0 min-w-[160px] rounded border border-border bg-popover py-1 shadow-md">
+                  {([
+                    ['data', 'Data'],
+                    ['confidence-gated', 'Confidence-Gated'],
+                    ['escalation', 'Escalation'],
+                    ['event', 'Event'],
+                    ['case-file', 'Case File'],
+                  ] as const).map(([value, label]) => (
+                    <button
+                      key={value}
+                      className="w-full px-3 py-1.5 text-left text-sm hover:bg-accent"
+                      onClick={() => handleEdgeContextMenuChangeType(value)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button
+              className="w-full px-3 py-1.5 text-left text-sm hover:bg-accent"
+              onClick={handleEdgeContextMenuEditTransform}
+            >
+              Edit transform...
+            </button>
+            <button
+              className="w-full px-3 py-1.5 text-left text-sm hover:bg-accent"
+              onClick={handleEdgeContextMenuProperties}
+            >
+              Properties
             </button>
           </div>
         )}

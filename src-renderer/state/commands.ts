@@ -156,6 +156,9 @@ export class UpdateWireCommand extends PatchCommand {
     if (edge) {
       if (!edge.data) edge.data = {}
       Object.assign(edge.data, this.newProps)
+      if (this.newProps.wireType) {
+        edge.type = this.newProps.wireType as string
+      }
     }
   }
 }
