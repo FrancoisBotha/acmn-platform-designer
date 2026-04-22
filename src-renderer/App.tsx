@@ -13,6 +13,7 @@ import {
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { nanoid } from 'nanoid'
+import { Routes, Route } from 'react-router-dom'
 import Palette from '@/components/Palette'
 import DefaultNode from '@/components/nodes/DefaultNode'
 import AgentNode from '@/components/nodes/AgentNode'
@@ -43,6 +44,8 @@ import { WelcomeScreen } from '@/features/welcome/WelcomeScreen'
 import { TopBar } from '@/components/TopBar'
 import { DirtyCheckDialog } from '@/components/DirtyCheckDialog'
 import { SelectionBadge } from '@/components/SelectionBadge'
+import { TestPlaceholder } from '@/features/test/TestPlaceholder'
+import { PublishPlaceholder } from '@/features/publish/PublishPlaceholder'
 
 const nodeTypes = {
   default: DefaultNode,
@@ -68,7 +71,7 @@ const edgeTypes = {
 
 const containerNodeTypes = new Set(['stage', 'case-plan-model'])
 
-function Canvas() {
+function DesignCanvas() {
   const nodes = useCanvasStore((s) => s.nodes)
   const edges = useCanvasStore((s) => s.edges)
   const applyNodesChange = useCanvasStore((s) => s.applyNodesChange)
@@ -80,30 +83,9 @@ function Canvas() {
 
   const reactFlowInstance = useRef<ReactFlowInstance | null>(null)
   const dragStartPositions = useRef<Map<string, { x: number; y: number }> | null>(null)
-  const [showDirtyDialog, setShowDirtyDialog] = useState(false)
 
   const saveProject = useProjectStore((s) => s.saveProject)
   const saveProjectAs = useProjectStore((s) => s.saveProjectAs)
-  const dirty = useProjectStore((s) => s.dirty)
-  const clearProject = useProjectStore((s) => s.clearProject)
-  const currentProject = useProjectStore((s) => s.currentProject)
-  const activeCpmFile = useProjectStore((s) => s.activeCpmFile)
-
-  const prevCpmRef = useRef(activeCpmFile)
-  useEffect(() => {
-    if (prevCpmRef.current !== activeCpmFile) {
-      clearSelection()
-      prevCpmRef.current = activeCpmFile
-    }
-  }, [activeCpmFile, clearSelection])
-
-  useEffect(() => {
-    if (!currentProject) return
-    const cpmPart = activeCpmFile ? ` · ${activeCpmFile}` : ''
-    const dirtyPart = dirty ? ' — modified' : ''
-    const title = `ACMN Designer — ${currentProject.name}${cpmPart}${dirtyPart}`
-    window.acmn.window.setTitle(title)
-  }, [currentProject, activeCpmFile, dirty])
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -150,36 +132,6 @@ function Canvas() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [undo, redo, pushCommand, saveProject, saveProjectAs])
-
-  const handleCloseRequest = useCallback(() => {
-    if (dirty) {
-      setShowDirtyDialog(true)
-    } else {
-      clearProject()
-      window.acmn.window.setTitle('ACMN Designer')
-    }
-  }, [dirty, clearProject])
-
-  const handleDirtySave = useCallback(async () => {
-    try {
-      await saveProject()
-      setShowDirtyDialog(false)
-      clearProject()
-      window.acmn.window.setTitle('ACMN Designer')
-    } catch {
-      setShowDirtyDialog(false)
-    }
-  }, [saveProject, clearProject])
-
-  const handleDirtyDiscard = useCallback(() => {
-    setShowDirtyDialog(false)
-    clearProject()
-    window.acmn.window.setTitle('ACMN Designer')
-  }, [clearProject])
-
-  const handleDirtyCancel = useCallback(() => {
-    setShowDirtyDialog(false)
-  }, [])
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
@@ -290,47 +242,104 @@ function Canvas() {
   )
 
   return (
+    <div className="flex flex-1 overflow-hidden">
+      <Palette />
+
+      <main className="flex-1 relative">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onNodeDragStart={onNodeDragStart}
+          onNodeDragStop={onNodeDragStop}
+          onInit={(instance) => {
+            reactFlowInstance.current = instance
+          }}
+          onDragOver={onDragOver}
+          onDrop={onDrop}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          deleteKeyCode={null}
+          selectionOnDrag
+          selectionMode={SelectionMode.Partial}
+          multiSelectionKeyCode="Control"
+          panOnDrag={[1, 2]}
+          panOnScroll
+          fitView
+        >
+          <Background variant={BackgroundVariant.Dots} />
+          <Controls />
+          <MiniMap position="bottom-right" />
+          <SelectionBadge />
+        </ReactFlow>
+      </main>
+
+      <aside className="w-72 shrink-0 border-l border-border bg-muted/40 p-4">
+        <h2 className="mb-3 text-sm font-semibold tracking-tight">Properties</h2>
+        <p className="text-xs text-muted-foreground">Select a node to view its properties</p>
+      </aside>
+    </div>
+  )
+}
+
+function ProjectShell() {
+  const [showDirtyDialog, setShowDirtyDialog] = useState(false)
+
+  const saveProject = useProjectStore((s) => s.saveProject)
+  const dirty = useProjectStore((s) => s.dirty)
+  const clearProject = useProjectStore((s) => s.clearProject)
+  const currentProject = useProjectStore((s) => s.currentProject)
+  const activeCpmFile = useProjectStore((s) => s.activeCpmFile)
+
+  useEffect(() => {
+    if (!currentProject) return
+    const cpmPart = activeCpmFile ? ` · ${activeCpmFile}` : ''
+    const dirtyPart = dirty ? ' — modified' : ''
+    const title = `ACMN Designer — ${currentProject.name}${cpmPart}${dirtyPart}`
+    window.acmn.window.setTitle(title)
+  }, [currentProject, activeCpmFile, dirty])
+
+  const handleCloseRequest = useCallback(() => {
+    if (dirty) {
+      setShowDirtyDialog(true)
+    } else {
+      clearProject()
+      window.acmn.window.setTitle('ACMN Designer')
+    }
+  }, [dirty, clearProject])
+
+  const handleDirtySave = useCallback(async () => {
+    try {
+      await saveProject()
+      setShowDirtyDialog(false)
+      clearProject()
+      window.acmn.window.setTitle('ACMN Designer')
+    } catch {
+      setShowDirtyDialog(false)
+    }
+  }, [saveProject, clearProject])
+
+  const handleDirtyDiscard = useCallback(() => {
+    setShowDirtyDialog(false)
+    clearProject()
+    window.acmn.window.setTitle('ACMN Designer')
+  }, [clearProject])
+
+  const handleDirtyCancel = useCallback(() => {
+    setShowDirtyDialog(false)
+  }, [])
+
+  return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-background text-foreground">
       <TopBar onClose={handleCloseRequest} />
 
-      <div className="flex flex-1 overflow-hidden">
-        <Palette />
-
-        <main className="flex-1 relative">
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onNodeDragStart={onNodeDragStart}
-            onNodeDragStop={onNodeDragStop}
-            onInit={(instance) => {
-              reactFlowInstance.current = instance
-            }}
-            onDragOver={onDragOver}
-            onDrop={onDrop}
-            nodeTypes={nodeTypes}
-            edgeTypes={edgeTypes}
-            deleteKeyCode={null}
-            selectionOnDrag
-            selectionMode={SelectionMode.Partial}
-            multiSelectionKeyCode="Control"
-            panOnDrag={[1, 2]}
-            panOnScroll
-            fitView
-          >
-            <Background variant={BackgroundVariant.Dots} />
-            <Controls />
-            <MiniMap position="bottom-right" />
-            <SelectionBadge />
-          </ReactFlow>
-        </main>
-
-        <aside className="w-72 shrink-0 border-l border-border bg-muted/40 p-4">
-          <h2 className="mb-3 text-sm font-semibold tracking-tight">Properties</h2>
-          <p className="text-xs text-muted-foreground">Select a node to view its properties</p>
-        </aside>
-      </div>
+      <Routes>
+        <Route path="/" element={<DesignCanvas />} />
+        <Route path="/test" element={<TestPlaceholder />} />
+        <Route path="/test/:scenarioId" element={<TestPlaceholder />} />
+        <Route path="/publish" element={<PublishPlaceholder />} />
+      </Routes>
 
       {showDirtyDialog && (
         <DirtyCheckDialog
@@ -350,5 +359,5 @@ export default function App() {
     return <WelcomeScreen />
   }
 
-  return <Canvas />
+  return <ProjectShell />
 }
