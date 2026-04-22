@@ -1,13 +1,14 @@
 import { memo } from 'react'
-import { Handle, Position, type NodeProps } from '@xyflow/react'
+import { Position, type NodeProps } from '@xyflow/react'
 import { Milestone } from 'lucide-react'
+import AcmnHandle from '@/components/AcmnHandle'
 
 function MilestoneNode({ data }: NodeProps) {
   const label = (data.label as string) ?? 'Milestone'
 
   return (
     <div className="relative flex flex-col items-center" style={{ width: 100, height: 100 }}>
-      <Handle type="target" position={Position.Top} className="!bg-muted-foreground" style={{ top: -4 }} />
+      <AcmnHandle type="target" position={Position.Left} id="any-in" style={{ top: '50%' }} />
       <svg width="100" height="100" viewBox="0 0 100 100" className="absolute inset-0">
         <polygon
           points="50,4 96,50 50,96 4,50"
@@ -22,7 +23,7 @@ function MilestoneNode({ data }: NodeProps) {
           {label}
         </span>
       </div>
-      <Handle type="source" position={Position.Bottom} className="!bg-muted-foreground" style={{ bottom: -4 }} />
+      <AcmnHandle type="source" position={Position.Right} id="any-out" style={{ top: '50%' }} />
     </div>
   )
 }

@@ -195,7 +195,8 @@ export function lookupPort(nodeId: string, handleId: string): PortInfo | undefin
   const node = nodes.find((n) => n.id === nodeId)
   if (!node) return undefined
 
-  const elementType = acmnElementTypeMap.get(node.type ?? '')
+  const elementTypeId = (node.data.elementType as string) ?? node.type ?? ''
+  const elementType = acmnElementTypeMap.get(elementTypeId)
   if (!elementType) return undefined
 
   const port = elementType.ports.find((p) => p.id === handleId)

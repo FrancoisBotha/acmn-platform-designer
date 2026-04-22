@@ -6,10 +6,15 @@ import {
   MiniMap,
   Controls,
   SelectionMode,
+  ConnectionMode,
   type Node,
+  type Edge,
+  type Connection,
   type NodeChange,
   type EdgeChange,
   type ReactFlowInstance,
+  type FinalConnectionState,
+  type IsValidConnection,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { nanoid } from 'nanoid'
@@ -36,10 +41,12 @@ import { useProjectStore } from '@/state/projectStore'
 import { useCanvasStore } from '@/state/canvasStore'
 import {
   AddElementCommand,
+  AddWireCommand,
   RemoveElementCommand,
   MoveElementCommand,
   type MoveEntry,
 } from '@/state/commands'
+import { canConnect } from '@/state/canvasStore'
 import { WelcomeScreen } from '@/features/welcome/WelcomeScreen'
 import { TopBar } from '@/components/TopBar'
 import { DirtyCheckDialog } from '@/components/DirtyCheckDialog'
@@ -293,6 +300,35 @@ function DesignCanvas() {
     [pushCommand],
   )
 
+  const isValidConnection: IsValidConnection = useCallback((connection) => {
+    return canConnect(
+      { nodeId: connection.source, handleId: connection.sourceHandle ?? '' },
+      { nodeId: connection.target, handleId: connection.targetHandle ?? '' },
+    )
+  }, [])
+
+  const onConnect = useCallback(
+    (connection: Connection) => {
+      const edge: Edge = {
+        id: nanoid(),
+        source: connection.source,
+        sourceHandle: connection.sourceHandle,
+        target: connection.target,
+        targetHandle: connection.targetHandle,
+        type: 'acmn-wire',
+      }
+      pushCommand(new AddWireCommand(edge))
+    },
+    [pushCommand],
+  )
+
+  const onConnectEnd = useCallback(
+    (_event: MouseEvent | TouchEvent, connectionState: FinalConnectionState) => {
+      if (!connectionState.isValid) return
+    },
+    [],
+  )
+
   return (
     <div className="flex flex-1 overflow-hidden">
       <Palette />
@@ -311,6 +347,10 @@ function DesignCanvas() {
           }}
           onDragOver={onDragOver}
           onDrop={onDrop}
+          onConnect={onConnect}
+          onConnectEnd={onConnectEnd}
+          isValidConnection={isValidConnection}
+          connectionMode={ConnectionMode.Loose}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           deleteKeyCode={null}
