@@ -1,8 +1,10 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, session } from 'electron'
 import path from 'path'
 import type { BackendContract } from './backend/contract'
 import { LocalBackend } from './backend/localBackend'
 import { RemoteBackend } from './backend/remoteBackend'
+import { registerProjectHandlers } from './ipc/project'
+import { registerDialogHandlers } from './ipc/dialog'
 
 let mainWindow: BrowserWindow | null = null
 let backend: BackendContract
@@ -37,7 +39,18 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
+  session.defaultSession.webRequest.onHeadersReceived((_details, callback) => {
+    callback({
+      responseHeaders: {
+        ..._details.responseHeaders,
+        'Content-Security-Policy': ["default-src 'self'"],
+      },
+    })
+  })
+
   backend = createBackend()
+  registerProjectHandlers(backend)
+  registerDialogHandlers()
   createWindow()
 })
 
