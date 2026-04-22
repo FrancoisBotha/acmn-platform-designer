@@ -12,6 +12,7 @@ import { EvaluatorProperties } from './EvaluatorProperties'
 import { StageProperties } from './StageProperties'
 import { MilestoneProperties } from './MilestoneProperties'
 import { HumanTaskProperties } from './HumanTaskProperties'
+import { DomainContextProperties } from './DomainContextProperties'
 
 const DEFAULT_WIDTH = 400
 const MIN_WIDTH = 200
@@ -58,17 +59,54 @@ function useSelection() {
   return { selectedNodes, selectedEdges, allNodes: nodes, allEdges: edges }
 }
 
+function CaseVariablesDialog({
+  open,
+  onClose,
+}: {
+  open: boolean
+  onClose: () => void
+}) {
+  if (!open) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="w-[400px] rounded-lg border border-border bg-background p-6 shadow-lg">
+        <h3 className="text-sm font-semibold mb-2">Case Variables</h3>
+        <p className="text-xs text-muted-foreground mb-4">
+          The case variables editor will be available in a future release
+          (epic_CASE_VARIABLES_AND_SENTRIES_06).
+        </p>
+        <div className="flex justify-end">
+          <button
+            type="button"
+            className="rounded bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+            onClick={onClose}
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function CpmProperties() {
   const currentProject = useProjectStore((s) => s.currentProject)
   const activeCpmId = useProjectStore((s) => s.activeCpmId)
+  const [caseVarsOpen, setCaseVarsOpen] = useState(false)
 
   const cpmRef = currentProject?.casePlanModels?.find((c) => c.id === activeCpmId)
   const cpmName = cpmRef?.file?.replace(/.*\//, '').replace(/\.json$/, '') ?? 'Untitled'
 
+  const domainContexts = currentProject?.domainContexts ?? []
+  const domainBinding = domainContexts.length > 0
+    ? domainContexts[0].file?.replace(/.*\//, '').replace(/\.json$/, '') ?? 'None'
+    : 'None'
+
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-xs font-medium mb-1">Name</label>
+        <label className="block text-xs font-medium mb-1">Case Name</label>
         <input
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
           value={cpmName}
@@ -76,7 +114,7 @@ function CpmProperties() {
         />
       </div>
       <div>
-        <label className="block text-xs font-medium mb-1">Version</label>
+        <label className="block text-xs font-medium mb-1">Version Label</label>
         <input
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
           value="1"
@@ -92,13 +130,23 @@ function CpmProperties() {
         />
       </div>
       <div>
-        <label className="block text-xs font-medium mb-1">Starter Domain Binding</label>
+        <label className="block text-xs font-medium mb-1">Domain Context Binding</label>
         <input
           className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
-          placeholder="None"
+          value={domainBinding}
           readOnly
         />
       </div>
+      <div>
+        <button
+          type="button"
+          className="w-full rounded border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent/50"
+          onClick={() => setCaseVarsOpen(true)}
+        >
+          Case variables&hellip;
+        </button>
+      </div>
+      <CaseVariablesDialog open={caseVarsOpen} onClose={() => setCaseVarsOpen(false)} />
     </div>
   )
 }
@@ -154,6 +202,7 @@ const typedPanels: Record<string, React.ComponentType<{ node: Node }>> = {
   stage: StageProperties,
   'cmmn-milestone': MilestoneProperties,
   'human-task': HumanTaskProperties,
+  'domain-context': DomainContextProperties,
 }
 
 function NodeProperties({ node }: { node: Node }) {
