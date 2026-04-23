@@ -29,7 +29,7 @@ function DefaultNode({ data }: NodeProps) {
       ))}
       <div className="flex items-center gap-2">
         {Icon && <Icon className="h-4 w-4 shrink-0" style={{ color }} />}
-        <span className="text-xs font-medium truncate">{label}</span>
+        <span className="text-xs font-medium truncate text-slate-900">{label}</span>
       </div>
       {outputPorts.map((port, i) => (
         <AcmnHandle

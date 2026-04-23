@@ -36,7 +36,7 @@ function BasePlanItemNode({ nodeProps, icon: Icon, colorClasses }: BasePlanItemN
       ))}
       <div className="flex items-center gap-2">
         <Icon className={`h-4 w-4 shrink-0 ${colorClasses.iconText}`} />
-        <span className="text-xs font-medium truncate">{label}</span>
+        <span className="text-xs font-medium truncate text-slate-900">{label}</span>
       </div>
       {outputPorts.map((port, i) => (
         <AcmnHandle
