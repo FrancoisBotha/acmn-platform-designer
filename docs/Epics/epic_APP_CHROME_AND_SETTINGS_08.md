@@ -1,9 +1,9 @@
 # Epic: APP_CHROME_AND_SETTINGS
 
-**Status:** NEW
+**Status:** TICKETS
 **Owner:** human
 **Created:** 2026-04-21
-**Last Updated:** 2026-04-21
+**Last Updated:** 2026-04-23
 
 ---
 
