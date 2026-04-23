@@ -4,6 +4,7 @@ import { applyNodeChanges, applyEdgeChanges } from '@xyflow/react'
 import { nanoid } from 'nanoid'
 import type { CanvasCommand, CanvasData } from './commands'
 import { RemoveElementCommand, PasteElementsCommand } from './commands'
+import type { CaseVariable } from '@/lib/validation'
 import type { PortDirection, PortType } from '../lib/acmnElementTypes'
 import { acmnElementTypeMap } from '../lib/acmnElementTypes'
 import type { PortInfo, ConnectionEndpoint } from '../lib/portCompatibility'
@@ -21,6 +22,7 @@ export interface ClipboardData {
 export interface CanvasState {
   nodes: Node[]
   edges: Edge[]
+  caseVariables: CaseVariable[]
   undoStack: CanvasCommand[]
   redoStack: CanvasCommand[]
   clipboard: ClipboardData | null
@@ -36,11 +38,13 @@ export interface CanvasState {
   cutSelection: () => void
   pasteClipboard: (viewportCenter: { x: number; y: number }) => void
   clearClipboard: () => void
+  setCaseVariables: (variables: CaseVariable[]) => void
 }
 
 export const useCanvasStore = create<CanvasState>()((set, get) => ({
   nodes: [],
   edges: [],
+  caseVariables: [],
   undoStack: [],
   redoStack: [],
   clipboard: null,
@@ -56,24 +60,25 @@ export const useCanvasStore = create<CanvasState>()((set, get) => ({
 
   pushCommand: (cmd) => {
     const state = get()
-    const data: CanvasData = { nodes: state.nodes, edges: state.edges }
+    const data: CanvasData = { nodes: state.nodes, edges: state.edges, caseVariables: state.caseVariables }
     const next = cmd.apply(data)
     const undoStack = [...state.undoStack, cmd]
     if (undoStack.length > MAX_HISTORY) undoStack.shift()
-    set({ nodes: next.nodes, edges: next.edges, undoStack, redoStack: [] })
+    set({ nodes: next.nodes, edges: next.edges, caseVariables: next.caseVariables, undoStack, redoStack: [] })
   },
 
   undo: () => {
     const state = get()
     if (state.undoStack.length === 0) return
     const cmd = state.undoStack[state.undoStack.length - 1]
-    const data: CanvasData = { nodes: state.nodes, edges: state.edges }
+    const data: CanvasData = { nodes: state.nodes, edges: state.edges, caseVariables: state.caseVariables }
     const prev = cmd.undo(data)
     const redoStack = [...state.redoStack, cmd]
     if (redoStack.length > MAX_HISTORY) redoStack.shift()
     set({
       nodes: prev.nodes,
       edges: prev.edges,
+      caseVariables: prev.caseVariables,
       undoStack: state.undoStack.slice(0, -1),
       redoStack,
     })
@@ -83,13 +88,14 @@ export const useCanvasStore = create<CanvasState>()((set, get) => ({
     const state = get()
     if (state.redoStack.length === 0) return
     const cmd = state.redoStack[state.redoStack.length - 1]
-    const data: CanvasData = { nodes: state.nodes, edges: state.edges }
+    const data: CanvasData = { nodes: state.nodes, edges: state.edges, caseVariables: state.caseVariables }
     const next = cmd.apply(data)
     const undoStack = [...state.undoStack, cmd]
     if (undoStack.length > MAX_HISTORY) undoStack.shift()
     set({
       nodes: next.nodes,
       edges: next.edges,
+      caseVariables: next.caseVariables,
       redoStack: state.redoStack.slice(0, -1),
       undoStack,
     })
@@ -187,6 +193,10 @@ export const useCanvasStore = create<CanvasState>()((set, get) => ({
 
   clearClipboard: () => {
     set({ clipboard: null, clipboardPasteCount: 0 })
+  },
+
+  setCaseVariables: (variables) => {
+    set({ caseVariables: variables })
   },
 }))
 

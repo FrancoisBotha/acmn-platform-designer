@@ -20,7 +20,7 @@ function makeEdge(id: string, source: string, target: string, data?: Record<stri
 }
 
 function makeData(nodes: Node[] = [], edges: Edge[] = []): CanvasData {
-  return { nodes, edges }
+  return { nodes, edges, caseVariables: [] }
 }
 
 describe('AddWireCommand', () => {

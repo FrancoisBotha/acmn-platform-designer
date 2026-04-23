@@ -218,6 +218,7 @@ export const useProjectStore = create<ProjectState>()((set, get) => {
         canvas.applyEdgesChange(
           rfEdges.map((e) => ({ type: 'add' as const, item: e }))
         )
+        canvas.setCaseVariables(Array.isArray(cpm.caseVariables) ? cpm.caseVariables as never : [])
       } catch {
         // File may not exist yet for a newly created CPM
       }
@@ -226,7 +227,7 @@ export const useProjectStore = create<ProjectState>()((set, get) => {
     saveActiveCpm: async () => {
       const { currentProject, activeCpmId, activeCpmFile } = get()
       if (!currentProject || !activeCpmId || !activeCpmFile) return
-      const { nodes, edges } = useCanvasStore.getState()
+      const { nodes, edges, caseVariables } = useCanvasStore.getState()
       const cpmEdges: CasePlanModelEdge[] = edges.map((e: Edge) => {
         const d = (e.data ?? {}) as Record<string, unknown>
         const edge: CasePlanModelEdge = {
@@ -258,7 +259,7 @@ export const useProjectStore = create<ProjectState>()((set, get) => {
         stages: [],
         milestones: [],
         sentries: [],
-        caseVariables: [],
+        caseVariables: caseVariables,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         file: activeCpmFile,

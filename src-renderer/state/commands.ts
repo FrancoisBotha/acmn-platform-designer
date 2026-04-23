@@ -1,11 +1,13 @@
 import { enablePatches, produceWithPatches, applyPatches, produce, type Patch } from 'immer'
 import type { Node, Edge } from '@xyflow/react'
+import type { CaseVariable } from '@/lib/validation'
 
 enablePatches()
 
 export interface CanvasData {
   nodes: Node[]
   edges: Edge[]
+  caseVariables: CaseVariable[]
 }
 
 export interface CanvasCommand {

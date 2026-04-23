@@ -15,6 +15,7 @@ import { MilestoneProperties } from './MilestoneProperties'
 import { HumanTaskProperties } from './HumanTaskProperties'
 import { DomainContextProperties } from './DomainContextProperties'
 import { ConnectorProperties } from './ConnectorProperties'
+import { CasePlanModelProperties } from './CasePlanModelProperties'
 
 const DEFAULT_WIDTH = 400
 const MIN_WIDTH = 200
@@ -265,7 +266,7 @@ function NodeProperties({ node }: { node: Node }) {
   )
 }
 
-function PanelContent() {
+function PanelContent({ onOpenVariablesEditor }: { onOpenVariablesEditor?: () => void }) {
   const { selectedNodes, selectedEdges } = useSelection()
 
   const totalSelected = selectedNodes.length + selectedEdges.length
@@ -277,6 +278,9 @@ function PanelContent() {
           Case Plan Model
         </h2>
         <CpmProperties />
+        {onOpenVariablesEditor && (
+          <CasePlanModelProperties onOpenVariablesEditor={onOpenVariablesEditor} />
+        )}
       </>
     )
   }
@@ -317,7 +321,11 @@ function PanelContent() {
   return null
 }
 
-export function PropertyPanel() {
+interface PropertyPanelProps {
+  onOpenVariablesEditor?: () => void
+}
+
+export function PropertyPanel({ onOpenVariablesEditor }: PropertyPanelProps) {
   const [width, setWidth] = useState(readPersistedWidth)
   const [collapsed, setCollapsed] = useState(readPersistedCollapsed)
   const dragging = useRef(false)
@@ -439,7 +447,7 @@ export function PropertyPanel() {
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
-        <PanelContent />
+        <PanelContent onOpenVariablesEditor={onOpenVariablesEditor} />
       </div>
     </aside>
   )

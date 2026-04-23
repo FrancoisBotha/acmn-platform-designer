@@ -65,6 +65,7 @@ import { MigrationToast } from '@/components/MigrationToast'
 import { RecoveryDialog } from '@/components/RecoveryDialog'
 import { SelectionBadge } from '@/components/SelectionBadge'
 import { PropertyPanel } from '@/features/propertyPanel/PropertyPanel'
+import { CaseVariablesEditor } from '@/features/caseVariables/CaseVariablesEditor'
 import { TestPlaceholder } from '@/features/test/TestPlaceholder'
 import { PublishPlaceholder } from '@/features/publish/PublishPlaceholder'
 import { ProjectTree } from '@/features/canvas/panels/ProjectTree'
@@ -116,6 +117,7 @@ function DesignCanvas() {
   const dragStartPositions = useRef<Map<string, { x: number; y: number }> | null>(null)
   const [edgeContextMenu, setEdgeContextMenu] = useState<{ x: number; y: number; edgeId: string } | null>(null)
   const [showTypeSubmenu, setShowTypeSubmenu] = useState(false)
+  const [showCaseVariablesEditor, setShowCaseVariablesEditor] = useState(false)
 
   const saveProject = useProjectStore((s) => s.saveProject)
   const saveProjectAs = useProjectStore((s) => s.saveProjectAs)
@@ -543,7 +545,11 @@ function DesignCanvas() {
         )}
       </main>
 
-      <PropertyPanel />
+      <PropertyPanel onOpenVariablesEditor={() => setShowCaseVariablesEditor(true)} />
+
+      {showCaseVariablesEditor && (
+        <CaseVariablesEditor onClose={() => setShowCaseVariablesEditor(false)} />
+      )}
     </div>
   )
 }
